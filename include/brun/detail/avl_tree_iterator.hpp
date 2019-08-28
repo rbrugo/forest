@@ -42,8 +42,8 @@ private:
     /* node_pointer _prev = nullptr; */
 
     explicit constexpr
-    _avl_tree_iterator(node_pointer ptr, node_pointer prev = nullptr) noexcept
-        : _current{ptr}/*, _prev{prev != nullptr ? prev : ptr->root}*/ {}
+    _avl_tree_iterator(node_pointer ptr) noexcept
+        : _current{ptr} {}
 
     /* constexpr inline current() const noexcept { return _current; } */
 
@@ -67,7 +67,6 @@ public:
         while (_current->left != nullptr) {
             _current = _current->left;
         }
-        /* _prev = _current->root; */
         return *this;
     }
 
@@ -87,7 +86,6 @@ public:
             prev = _current;
             _current = _current->root;
         }
-        /* _prev = prev; */
         return *this;
     }
 
@@ -97,7 +95,6 @@ public:
         while (_current->right != nullptr) {
             _current = _current->right;
         }
-        /* _prev = _current->root; */
         return *this;
     }
 
@@ -115,7 +112,6 @@ public:
             prev = _current;
             _current = _current->root;
         }
-        /* _prev = prev; */
         return *this;
     }
 
@@ -128,7 +124,7 @@ public:
         }
         if (_current->right != nullptr) {
             _current = _current->right;
-            return _all_down_left(); //this will correctly set _prev
+            return _all_down_left();
         }
         return _up_left();
     }
@@ -190,7 +186,7 @@ private:
     node_pointer _current = nullptr;
 
     explicit constexpr
-    _avl_tree_const_iterator(node_pointer ptr, node_pointer prev = nullptr) noexcept
+    _avl_tree_const_iterator(node_pointer ptr) noexcept
         : _current{ptr} {}
 
 public:
