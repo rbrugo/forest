@@ -173,7 +173,7 @@ private:
     template <class, class, class> friend class brun::avl_tree;
 
     using node_type         = node<T, std::int_fast8_t>;
-    using node_pointer      = node_type *;
+    using node_pointer      = node_type const *;
 public:
     using value_type        = T;
     using reference         = value_type const &;
