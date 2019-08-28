@@ -38,8 +38,8 @@ struct _node_deallocator
     constexpr inline void operator()(allocator_traits::pointer ptr) noexcept
     {
         if (constructed) {
-            /* allocator_traits::destroy(_alloc, std::addressof(ptr->value)); */
-            allocator_traits::destroy(_alloc, ptr);
+            allocator_traits::destroy(_alloc, std::addressof(ptr->value));
+            /* allocator_traits::destroy(_alloc, ptr); */
         }
         allocator_traits::deallocate(_alloc, ptr, 1);
     }
