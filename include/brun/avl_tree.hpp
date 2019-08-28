@@ -15,7 +15,7 @@
 namespace brun
 {
 
-template <class T, class Compare, class Alloc = std::allocator<T>>
+template <class T, class Compare = std::less<>, class Alloc = std::allocator<T>>
 class avl_tree : private detail::_tree_impl<T, std::int_fast8_t, Alloc>
 {
 public:
