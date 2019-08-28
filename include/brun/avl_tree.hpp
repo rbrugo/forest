@@ -149,14 +149,14 @@ public:
     constexpr inline void clear() noexcept { base::clear(); }
 
 private:
-    using _hold_ptr = detail::_node_deallocator<node_allocator>;
+    using _hold_ptr = std::unique_ptr<node, detail::_node_deallocator<node_allocator>>;
 
     constexpr inline
     _hold_ptr _allocate_node(node_allocator & alloc)
     {
         auto ptr = node_allocator_traits::allocate(alloc, 1);
         ptr->root = ptr->left = ptr->right = nullptr;
-        return _hold_ptr{ptr, detail::_node_deallocator{alloc}};
+        return _hold_ptr(ptr, detail::_node_deallocator(alloc));
     }
 }; // class avl_tree
 
