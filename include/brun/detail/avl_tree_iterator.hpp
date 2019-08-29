@@ -20,6 +20,9 @@ template <class, class, class> class avl_tree;
 namespace brun :: detail
 {
 
+template <typename T> struct _avl_tree_iterator;
+template <typename T> struct _avl_tree_const_iterator;
+
 template <typename T>
 struct _avl_tree_iterator
 {
@@ -39,13 +42,10 @@ public:
 
 private:
     node_pointer _current = nullptr;
-    /* node_pointer _prev = nullptr; */
 
     explicit constexpr
     _avl_tree_iterator(node_pointer ptr) noexcept
         : _current{ptr} {}
-
-    /* constexpr inline current() const noexcept { return _current; } */
 
 public:
     constexpr inline
@@ -159,11 +159,20 @@ public:
     bool operator!=(_avl_tree_iterator const & lhs, _avl_tree_iterator const & rhs) noexcept
     { return !(lhs == rhs); }
 
+    /* template <typename U> */
+    /* friend constexpr inline */
+    /* bool operator==(_avl_tree_iterator<T> const & lhs, _avl_tree_const_iterator<U> const & rhs) noexcept; */
+
+    /* template <typename U> */
+    /* friend constexpr inline */
+    /* bool operator!=(_avl_tree_iterator<T> const & lhs, _avl_tree_const_iterator<U> const & rhs) noexcept; */
+
     friend constexpr inline
     auto depth(_avl_tree_iterator<T> const & it) noexcept
     {
         return _height(it._current);
     }
+
 }; // struct _avl_tree_iterator
 
 template <typename T>
@@ -299,17 +308,16 @@ public:
     bool operator!=(_avl_tree_const_iterator const & lhs, _avl_tree_const_iterator const & rhs) noexcept
     { return !(lhs == rhs); }
 
-    friend constexpr inline
-    bool operator==(_avl_tree_iterator<T> const & lhs, _avl_tree_const_iterator const & rhs) noexcept
-    {
-        return lhs._current == rhs._current;
-    }
+    template <typename U>
+    constexpr inline
+    bool operator==(_avl_tree_iterator<U> const & rhs) const noexcept
+    { return _current == rhs._current; }
 
-    friend constexpr inline
-    bool operator!=(_avl_tree_const_iterator const & lhs, _avl_tree_iterator<T> const & rhs) noexcept
-    {
-        return rhs == lhs;
-    }
+    template <typename U>
+    constexpr inline
+    bool operator!=(_avl_tree_iterator<U> const & rhs) const noexcept
+    { return _current != rhs.current; }
+
 
     friend constexpr inline
     auto depth(_avl_tree_const_iterator<T> const & it) noexcept
@@ -318,6 +326,15 @@ public:
     }
 }; // struct _avl_tree_const_iterator
 
+template <typename T, typename U>
+constexpr inline
+bool operator!=(_avl_tree_iterator<U> const & lhs, _avl_tree_const_iterator<T> const & rhs) noexcept
+{ return rhs != lhs; }
+
+template <typename T, typename U>
+constexpr inline
+bool operator==(_avl_tree_iterator<U> const & lhs, _avl_tree_const_iterator<T> const & rhs) noexcept
+{ return rhs == lhs; }
 
 } // namespace brun :: detail
 
