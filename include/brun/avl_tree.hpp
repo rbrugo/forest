@@ -108,10 +108,10 @@ public:
 
     /// Access
 private:
-    constexpr inline node_const_pointer _first() const noexcept { return _end.left; }
-    constexpr inline node_const_pointer _last()  const noexcept { return _end.right; }
-    constexpr inline node_pointer _first() noexcept { return _end.left; }
-    constexpr inline node_pointer _last()  noexcept { return _end.right; }
+    constexpr inline node_pointer const & _first() const noexcept { return _end.left; }
+    constexpr inline node_pointer const & _last()  const noexcept { return _end.right; }
+    constexpr inline node_pointer & _first() noexcept { return _end.left; }
+    constexpr inline node_pointer & _last()  noexcept { return _end.right; }
 
 public:
     constexpr inline reference front()
@@ -365,8 +365,8 @@ avl_tree<T, Compare, Alloc>::node_pointer avl_tree<T, Compare, Alloc>::_emplace(
                 ptr->left = hold.release();
                 ptr = ptr->left;
 
-                if (ptr->root == _end.left) { //Set the new front
-                    _end.left = ptr;
+                if (ptr->root == _first()) { //Set the new front
+                    _first() = ptr;
                 }
                 return ptr;
             }
@@ -376,8 +376,8 @@ avl_tree<T, Compare, Alloc>::node_pointer avl_tree<T, Compare, Alloc>::_emplace(
                 hold->root = ptr;
                 ptr->right = hold.release();
                 ptr = ptr->right;
-                if (ptr->root == _end.right) {
-                    _end.right = ptr;
+                if (ptr->root == _last()) {
+                    _last() = ptr;
                 }
                 return ptr;
             }
