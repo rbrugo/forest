@@ -81,7 +81,7 @@ public:
             return *this;
         }
 
-        //if the root is _end.left, it will stop at `end`
+        //if the root is _end.left, it will stop at `_end`
         while (prev == _current->right) {
             prev = _current;
             _current = _current->root;
