@@ -36,6 +36,7 @@ protected:
     using node_allocator        = alloc_traits::template rebind_alloc<node_type>;
     using node_allocator_traits = std::allocator_traits<node_allocator>;
     using node_pointer          = node_allocator_traits::pointer;
+    using node_const_pointer    = node_allocator_traits::const_pointer;
 
     /* node_pointer _head; //NB: in gcc and clang, end is _end->next */
     node_type _end; // _end->root = root; _end->left = front; _end->right = back
@@ -56,6 +57,10 @@ protected:
     constexpr void swap(_tree_impl & other)
         noexcept(noexcept(std::allocator_traits<allocator_type>::is_always_equal::value));
 
+private:
+    constexpr inline
+    void _set_end() noexcept { _end.root = _end.left = _end.right = std::addressof(_end); }
+
 }; // struct _tree_impl
 
 template <typename T, typename Int, typename Alloc>
@@ -63,25 +68,25 @@ constexpr inline
 _tree_impl<T, Int, Alloc>::_tree_impl()
     noexcept(noexcept(std::is_nothrow_default_constructible<node_allocator>::value))
     : _size{0}
-{}
+{ _set_end(); }
 
 template <typename T, typename Int, typename Alloc>
 constexpr inline
 _tree_impl<T, Int, Alloc>::_tree_impl(allocator_type const & a)
     : _size{0}, _node_alloc{node_allocator{a}}
-{}
+{ _set_end(); }
 
 template <typename T, typename Int, typename Alloc>
 constexpr inline
 _tree_impl<T, Int, Alloc>::_tree_impl(node_allocator const & a)
     : _size{0}, _node_alloc{a}
-{}
+{ _set_end(); }
 
 template <typename T, typename Int, typename Alloc>
 constexpr inline
 _tree_impl<T, Int, Alloc>::_tree_impl(node_allocator && a)
     : _size{0}, _node_alloc{std::move(a)}
-{}
+{ _set_end(); }
 
 template <typename T, typename Int, typename Alloc>
 _tree_impl<T, Int, Alloc>::~_tree_impl() noexcept
@@ -93,6 +98,7 @@ void _tree_impl<T, Int, Alloc>::clear() noexcept
 {
     if (!empty()) {
         auto it = _end.root;
+
         while (it != std::addressof(_end)) {
             while (it->left != nullptr) {
                 it = it->left;
@@ -104,10 +110,11 @@ void _tree_impl<T, Int, Alloc>::clear() noexcept
                 continue;
             }
             auto del = it;
+            it = it->root;
             node_allocator_traits::destroy(_node_alloc, del);
             node_allocator_traits::deallocate(_node_alloc, del, 1);
         }
-        _end.left = _end.right = _end.root = std::addressof(_end);
+        _set_end(); /* _end.left = _end.right = _end.root = std::addressof(_end); */
         _size = 0;
     }
 }
