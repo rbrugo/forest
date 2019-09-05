@@ -24,6 +24,7 @@ public:
     using node_allocator        = base::node_allocator;
     using node_allocator_traits = base::node_allocator_traits;
     using node_pointer          = base::node_pointer;
+    using node_const_pointer    = base::node_const_pointer;
     using compare_type          = Compare;
     using height_type           = std::int_fast8_t;
 public:
@@ -91,8 +92,8 @@ public:
     }
 
     /// Iterators
-    constexpr inline iterator begin() noexcept { return iterator{_end.left}; }
-    constexpr inline const_iterator begin() const noexcept { return const_iterator{_end.left}; }
+    constexpr inline iterator begin() noexcept { return iterator{_first()}; }
+    constexpr inline const_iterator begin() const noexcept { return const_iterator{_first()}; }
     constexpr inline iterator end() noexcept { return iterator{std::addressof(_end)}; }
     constexpr inline const_iterator end() const noexcept { return const_iterator{std::addressof(_end)}; }
     constexpr inline const_iterator cbegin() const noexcept { return begin(); }
@@ -106,24 +107,31 @@ public:
     constexpr inline const_reverse_iterator rcend() const noexcept { return const_reverse_iterator{begin()}; }
 
     /// Access
+private:
+    constexpr inline node_const_pointer _first() const noexcept { return _end.left; }
+    constexpr inline node_const_pointer _last()  const noexcept { return _end.right; }
+    constexpr inline node_pointer _first() noexcept { return _end.left; }
+    constexpr inline node_pointer _last()  noexcept { return _end.right; }
+
+public:
     constexpr inline reference front()
     {
-        return base::_end.left->value;
+        return _first()->value;
     }
 
     constexpr inline const_reference front() const
     {
-        return base::_end.left->value;
+        return _first()->value;
     }
 
     constexpr inline reference back()
     {
-        return base::_end.right->value;
+        return _last()->value;
     }
 
     constexpr inline const_reference back() const
     {
-        return base::_end.right->value;
+        return _last()->value;
     }
 
 
@@ -218,9 +226,7 @@ template <typename Iterator>
 constexpr
 avl_tree<T, Compare, Alloc>::avl_tree(Iterator f, Iterator l)
 {
-    for (; f != l; ++f) {
-        emplace(*f);
-    }
+    assign(std::move(f), std::move(l));
 }
 
 template <typename T, typename Compare, typename Alloc>
@@ -229,9 +235,7 @@ template <typename Iterator>
 constexpr
 avl_tree<T, Compare, Alloc>::avl_tree(Iterator f, Iterator l, allocator_type const & a) : base{a}
 {
-    for (; f != l; ++f) {
-        emplace(*f);
-    }
+    assign(std::move(f), std::move(l));
 }
 
 template <typename T, typename Compare, typename Alloc>
