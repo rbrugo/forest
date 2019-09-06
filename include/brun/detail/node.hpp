@@ -37,57 +37,6 @@ template <class T, typename Int>
     ) + 1;
 }
 
-template <class T, typename Int>
-constexpr
-void _right_rotation(node<T, Int> * const v) noexcept
-{
-    auto const root = v->root;
-    auto const u  = v->left;
-    auto const ur = u->right;
-
-    if (root->left == v) {
-        root->left = u;
-    } else {
-        root->right = u;
-    }
-    u->root = root;
-    v->root = u;
-    u->right = v;
-
-    v->left = ur;
-    if (ur != nullptr) {
-        ur->root = v;
-    }
-
-    v->height = _node_height(v);
-}
-
-template <class T, typename Int>
-constexpr
-void _left_rotation(node<T, Int> * const v) noexcept //_right_right
-{
-    auto const root = v->root;
-    auto const u = v->right;
-    auto const ul = u->left;
-
-    if (root->left == v) {
-        root->left = u;
-    } else {
-        root->right = u;
-    }
-    u->root = root;
-    v->root = u;
-    u->left = v;
-
-    v->right = ul;
-    if (ul != nullptr) {
-        ul->root = v;
-    }
-
-    v->height = _node_height(v);
-}
-
-
 } // namespace brun :: detail
 
 #endif /* NODE_HPP */
