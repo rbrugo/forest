@@ -100,18 +100,18 @@ public:
     constexpr inline const_iterator cend() const noexcept { return end(); }
 
     constexpr inline reverse_iterator rbegin() noexcept { return reverse_iterator{end()}; }
-    constexpr inline const_reverse_iterator rbegin() const noexcept { return const_reverse_iterator{begin()}; }
-    constexpr inline reverse_iterator rend() noexcept { return reverse_iterator{end()}; }
-    constexpr inline const_reverse_iterator rend() const noexcept { return const_reverse_iterator{end()}; }
+    constexpr inline const_reverse_iterator rbegin() const noexcept { return const_reverse_iterator{end()}; }
+    constexpr inline reverse_iterator rend() noexcept { return reverse_iterator{begin()}; }
+    constexpr inline const_reverse_iterator rend() const noexcept { return const_reverse_iterator{begin()}; }
     constexpr inline const_reverse_iterator rcbegin() const noexcept { return const_reverse_iterator{end()}; }
     constexpr inline const_reverse_iterator rcend() const noexcept { return const_reverse_iterator{begin()}; }
 
     /// Access
 private:
-    constexpr inline node_pointer const & _first() const noexcept { return _end.left; }
-    constexpr inline node_pointer const & _last()  const noexcept { return _end.right; }
-    constexpr inline node_pointer & _first() noexcept { return _end.left; }
-    constexpr inline node_pointer & _last()  noexcept { return _end.right; }
+    constexpr inline node_pointer const & _first() const noexcept { return _end.right; }
+    constexpr inline node_pointer const & _last()  const noexcept { return _end.left; }
+    constexpr inline node_pointer & _first() noexcept { return _end.right; }
+    constexpr inline node_pointer & _last()  noexcept { return _end.left; }
 
 public:
     constexpr inline reference front()
@@ -141,6 +141,8 @@ private:
 
     constexpr void _balance_from(node_pointer ptr);
 
+    constexpr void _right_rotation(node_pointer const v) noexcept;
+    constexpr void _left_rotation(node_pointer const v) noexcept;
 public:
     template <typename ...Args>
     constexpr reference emplace(Args&&... args);
@@ -161,6 +163,7 @@ private:
     {
         auto ptr = node_allocator_traits::allocate(alloc, 1);
         ptr->root = ptr->left = ptr->right = nullptr;
+        ptr->height = 0;
         return _hold_ptr(ptr, detail::_node_deallocator(alloc));
     }
 }; // class avl_tree
@@ -185,7 +188,7 @@ template <typename T, typename Compare, typename Alloc>
 constexpr inline
 avl_tree<T, Compare, Alloc>::avl_tree(avl_tree && other) : base{std::move(other._node_alloc)}
 {
-    assing(std::move_iterator(other.begin()), std::move_iterator(other.end()));
+    assign(std::move_iterator(other.begin()), std::move_iterator(other.end()));
 }
 
 template <typename T, typename Compare, typename Alloc>
@@ -193,7 +196,7 @@ constexpr inline
 avl_tree<T, Compare, Alloc>::avl_tree(avl_tree && other, allocator_type const & alloc)
     : base{alloc}
 {
-    assing(std::move_iterator(other.begin()), std::move_iterator(other.end()));
+    assign(std::move_iterator(other.begin()), std::move_iterator(other.end()));
 }
 
 template <typename T, typename Compare, typename Alloc>
@@ -304,6 +307,63 @@ avl_tree<T, Compare, Alloc>::reference avl_tree<T, Compare, Alloc>::emplace(Args
 
 template <typename T, typename Compare, typename Alloc>
 constexpr
+void avl_tree<T, Compare, Alloc>::_right_rotation(node_pointer const v) noexcept
+{
+    auto const root = v->root;
+    auto const u  = v->left;
+    auto const ur = u->right;
+
+    if (root == std::addressof(_end)) {
+        _end.root = u;
+    }
+    else if (root->left == v) {
+        root->left = u;
+    } else {
+        root->right = u;
+    }
+    u->root = root;
+    v->root = u;
+    u->right = v;
+
+    v->left = ur;
+    if (ur != nullptr) {
+        ur->root = v;
+    }
+
+    v->height = _node_height(v);
+}
+
+template <typename T, typename Compare, typename Alloc>
+constexpr
+void avl_tree<T, Compare, Alloc>::_left_rotation(node_pointer const v) noexcept
+{
+    auto const root = v->root;
+    auto const u = v->right;
+    auto const ul = u->left;
+
+    if (root == std::addressof(_end)) {
+        _end.root = u;
+    }
+    else if (root->left == v) {
+        root->left = u;
+    } else {
+        root->right = u;
+    }
+    u->root = root;
+    v->root = u;
+    u->left = v;
+
+    v->right = ul;
+    if (ul != nullptr) {
+        ul->root = v;
+    }
+
+    v->height = _node_height(v);
+}
+
+
+template <typename T, typename Compare, typename Alloc>
+constexpr
 void avl_tree<T, Compare, Alloc>::_balance_from(node_pointer ptr)
 {
     constexpr auto balance_factor = [](node const * const root) noexcept -> std::ptrdiff_t {
@@ -324,18 +384,18 @@ void avl_tree<T, Compare, Alloc>::_balance_from(node_pointer ptr)
         if (auto const diff = balance_factor(ptr); diff >= 2) {
             auto const left_diff = balance_factor(ptr->left);
             if (left_diff > 0) {
-                detail::_right_rotation(ptr);
+                _right_rotation(ptr);
             } else if (left_diff < 0) {
-                detail::_left_rotation(ptr->left);
-                detail::_right_rotation(ptr);
+                _left_rotation(ptr->left);
+                _right_rotation(ptr);
             }
         } else if (diff <= -2) {
             auto const right_diff = balance_factor(ptr->right);
-            if (right_diff < 0) {                   //rr
-                detail::_left_rotation(ptr);
-            } else if (right_diff > 0) {            //lr
-                detail::_right_rotation(ptr->right);
-                detail::_left_rotation(ptr);
+            if (right_diff < 0) {   
+                _left_rotation(ptr);
+            } else if (right_diff > 0) {
+                _right_rotation(ptr->right);
+                _left_rotation(ptr);
             }
         }
     }
@@ -359,6 +419,7 @@ avl_tree<T, Compare, Alloc>::node_pointer avl_tree<T, Compare, Alloc>::_emplace(
 
     auto ptr = _end.root;
     while (true) {
+        ++ptr->height;
         if (_cmp(hold->value, ptr->value)) {
             if (ptr->left == nullptr) {
                 hold->root = ptr;
