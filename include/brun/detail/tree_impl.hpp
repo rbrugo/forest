@@ -49,7 +49,7 @@ protected:
     constexpr inline _tree_impl(allocator_type const &);
     constexpr inline _tree_impl(node_allocator const &);
     constexpr inline _tree_impl(node_allocator &&);
-    ~_tree_impl() noexcept;
+    inline ~_tree_impl() noexcept;
 
     constexpr void clear() noexcept;
     constexpr bool empty() const noexcept { return _size == 0; }
