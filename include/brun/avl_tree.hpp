@@ -150,7 +150,7 @@ public:
 public:
 
     constexpr inline void swap(avl_tree & other)
-        noexcept(noexcept(std::allocator_traits<allocator_type>::is_always_equal::value))
+        noexcept(noexcept(std::allocator_traits<node_allocator>::is_always_equal::value))
     { base::swap(other); }
 
     constexpr inline void clear() noexcept { base::clear(); }
@@ -171,7 +171,7 @@ private:
 template <typename T, typename Compare, typename Alloc>
 constexpr avl_tree<T, Compare, Alloc>::avl_tree(avl_tree const & other)
     : base{
-        std::allocator_traits<allocator_type>::select_on_container_copy_construction(other._node_alloc)
+        std::allocator_traits<node_allocator>::select_on_container_copy_construction(other._node_alloc)
     }
 {
     assign(other.begin(), other.end());
@@ -189,6 +189,7 @@ constexpr inline
 avl_tree<T, Compare, Alloc>::avl_tree(avl_tree && other) : base{std::move(other._node_alloc)}
 {
     assign(std::move_iterator(other.begin()), std::move_iterator(other.end()));
+    other._size = 0;
 }
 
 template <typename T, typename Compare, typename Alloc>
@@ -197,6 +198,7 @@ avl_tree<T, Compare, Alloc>::avl_tree(avl_tree && other, allocator_type const & 
     : base{alloc}
 {
     assign(std::move_iterator(other.begin()), std::move_iterator(other.end()));
+    other._size = 0;
 }
 
 template <typename T, typename Compare, typename Alloc>
@@ -208,20 +210,6 @@ template <typename T, typename Compare, typename Alloc>
 constexpr inline
 avl_tree<T, Compare, Alloc>::avl_tree(std::initializer_list<value_type> il, allocator_type const & a)
     : avl_tree(il.begin(), il.end(), a) { }
-
-/* template <typename T, typename Compare, typename Alloc> */
-/* constexpr avl_tree<T, Compare, Alloc>::avl_tree(avl_tree && other) : _node_alloc(std::move(other._node_alloc)) */
-/* { */
-/*     _node_alloc = other._node_alloc; */
-/*     assign(other.begin(), other.end()); */
-/* } */
-
-/* template <typename T, typename Compare, typename Alloc> */
-/* constexpr avl_tree<T, Compare, Alloc>::avl_tree(avl_tree const & other, allocator_type const & a) */
-/* { */
-/*     _node_alloc = a; */
-/*     assign(other.begin(), other.end()); */
-/* } */
 
 template <typename T, typename Compare, typename Alloc>
 template <typename Iterator>
@@ -248,7 +236,7 @@ avl_tree<T, Compare, Alloc> & avl_tree<T, Compare, Alloc>::operator=(avl_tree co
     if (std::addressof(_end) == std::addressof(other._end)) {
         return *this;
     }
-    if constexpr (std::allocator_traits<allocator_type>::propagate_on_container_copy_assignment::value) {
+    if constexpr (std::allocator_traits<node_allocator>::propagate_on_container_copy_assignment::value) {
         if (_node_alloc != other._node_alloc) {
             clear();
             _node_alloc = other.alloc;
@@ -266,10 +254,10 @@ avl_tree<T, Compare, Alloc> & avl_tree<T, Compare, Alloc>::operator=(avl_tree &&
         return *this;
     }
 
-    if constexpr (std::allocator_traits<allocator_type>::propagate_on_container_move_assignment::value) {
+    if constexpr (std::allocator_traits<node_allocator>::propagate_on_container_move_assignment::value) {
         clear();
-        _node_alloc = other._node_alloc;
-        _end = other._end;
+        _node_alloc = std::move(other._node_alloc);
+        _end = std::move(other._end);
         other._end.root = std::addressof(_end);
 
     } else {
@@ -277,6 +265,7 @@ avl_tree<T, Compare, Alloc> & avl_tree<T, Compare, Alloc>::operator=(avl_tree &&
         auto const mend = std::move_iterator(end(other));
         assign(mbegin, mend);
     }
+    other._size = 0;
 
     return *this;
 }
