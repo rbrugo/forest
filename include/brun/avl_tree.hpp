@@ -44,6 +44,7 @@ public:
 private:
     using base::_end;
     using base::_node_alloc;
+    using base::_size;
     [[no_unique_address]] compare_type _cmp;
 
 public:
@@ -112,6 +113,8 @@ private:
     constexpr inline node_pointer const & _last()  const noexcept { return _end.left; }
     constexpr inline node_pointer & _first() noexcept { return _end.right; }
     constexpr inline node_pointer & _last()  noexcept { return _end.left; }
+
+    using base::_set_end;
 
 public:
     constexpr inline reference front()
@@ -243,6 +246,7 @@ avl_tree<T, Compare, Alloc> & avl_tree<T, Compare, Alloc>::operator=(avl_tree co
         }
     }
     assign(other.begin(), other.end());
+    _cmp = other._cmp;
     return *this;
 }
 
@@ -258,14 +262,23 @@ avl_tree<T, Compare, Alloc> & avl_tree<T, Compare, Alloc>::operator=(avl_tree &&
         clear();
         _node_alloc = std::move(other._node_alloc);
         _end = std::move(other._end);
-        other._end.root = std::addressof(_end);
-
+        _end.root->root = std::addressof(_end);
+        _size = std::move(other._size);
     } else {
-        auto const mbegin = std::move_iterator(begin(other));
-        auto const mend = std::move_iterator(end(other));
-        assign(mbegin, mend);
+        if (_node_alloc != other._node_alloc) {
+            auto const mbegin = std::move_iterator(begin(other));
+            auto const mend = std::move_iterator(end(other));
+            assign(mbegin, mend);
+        } else {
+            clear();
+            _end = std::move(other._end);
+            _end.root->root = std::addressof(_end);
+            _size = std::move(other._size);
+        }
     }
+    _cmp = std::move(other._cmp);
     other._size = 0;
+    other._set_end();
 
     return *this;
 }
