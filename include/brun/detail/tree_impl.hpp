@@ -57,7 +57,7 @@ protected:
     constexpr void swap(_tree_impl & other)
         noexcept(noexcept(std::allocator_traits<allocator_type>::is_always_equal::value));
 
-private:
+protected:
     constexpr inline
     void _set_end() noexcept { _end.root = _end.left = _end.right = std::addressof(_end); }
 
