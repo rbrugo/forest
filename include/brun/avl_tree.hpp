@@ -119,22 +119,22 @@ private:
 public:
     constexpr inline reference front()
     {
-        return _first()->value;
+        return _first()->value();
     }
 
     constexpr inline const_reference front() const
     {
-        return _first()->value;
+        return _first()->value();
     }
 
     constexpr inline reference back()
     {
-        return _last()->value;
+        return _last()->value();
     }
 
     constexpr inline const_reference back() const
     {
-        return _last()->value;
+        return _last()->value();
     }
 
 
@@ -161,14 +161,21 @@ public:
 private:
     using _hold_ptr = std::unique_ptr<node, detail::_node_deallocator<node_allocator>>;
 
+    template <typename ...Args>
     constexpr inline
-    _hold_ptr _allocate_node(node_allocator & alloc)
+    static _hold_ptr _construct_node(node_allocator & alloc, Args &&... args)
     {
         auto ptr = node_allocator_traits::allocate(alloc, 1);
-        ptr->root = ptr->left = ptr->right = nullptr;
-        ptr->height = 0;
-        return _hold_ptr(ptr, detail::_node_deallocator(alloc));
+        auto hold = _hold_ptr(ptr, detail::_node_deallocator(alloc));
+        node_allocator_traits::construct(alloc, hold.get());
+        ++hold.get_deleter().constructed;
+        node_allocator_traits::construct(alloc, std::addressof(hold->value()), std::forward<Args>(args)...);
+        ++hold.get_deleter().constructed;
+        return hold;
     }
+
+
+
 }; // class avl_tree
 
 template <typename T, typename Compare, typename Alloc>
@@ -304,7 +311,7 @@ avl_tree<T, Compare, Alloc>::reference avl_tree<T, Compare, Alloc>::emplace(Args
     _balance_from(_new_node);
     ++base::_size;
 
-    return _new_node->value;
+    return _new_node->value();
 }
 
 template <typename T, typename Compare, typename Alloc>
@@ -408,10 +415,8 @@ template <typename ...Args>
 constexpr
 avl_tree<T, Compare, Alloc>::node_pointer avl_tree<T, Compare, Alloc>::_emplace(Args&&... args)
 {
-    auto & na = _node_alloc;
-    auto hold = _allocate_node(na);
-    node_allocator_traits::construct(na, std::addressof(hold->value), std::forward<Args>(args)...);
-    hold.get_deleter().constructed = true;
+    auto & alloc = _node_alloc;
+    auto hold = _construct_node(alloc, std::forward<Args>(args)...);
 
     if (empty()) {
         hold->root = std::addressof(_end);
@@ -422,7 +427,7 @@ avl_tree<T, Compare, Alloc>::node_pointer avl_tree<T, Compare, Alloc>::_emplace(
     auto ptr = _end.root;
     while (true) {
         ++ptr->height;
-        if (_cmp(hold->value, ptr->value)) {
+        if (_cmp(hold->value(), ptr->value())) {
             if (ptr->left == nullptr) {
                 hold->root = ptr;
                 ptr->left = hold.release();

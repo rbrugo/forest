@@ -53,12 +53,12 @@ public:
 
     constexpr inline
     reference operator*() const noexcept
-    { return _current->value; }
+    { return _current->value(); }
 
     constexpr inline
     pointer operator->() const noexcept
     {
-        return std::pointer_traits<pointer>::pointer_to(_current->value);
+        return std::pointer_traits<pointer>::pointer_to(_current->value());
     }
 
     constexpr inline
@@ -159,14 +159,6 @@ public:
     bool operator!=(_avl_tree_iterator const & lhs, _avl_tree_iterator const & rhs) noexcept
     { return !(lhs == rhs); }
 
-    /* template <typename U> */
-    /* friend constexpr inline */
-    /* bool operator==(_avl_tree_iterator<T> const & lhs, _avl_tree_const_iterator<U> const & rhs) noexcept; */
-
-    /* template <typename U> */
-    /* friend constexpr inline */
-    /* bool operator!=(_avl_tree_iterator<T> const & lhs, _avl_tree_const_iterator<U> const & rhs) noexcept; */
-
     friend constexpr inline
     auto depth(_avl_tree_iterator<T> const & it) noexcept
     {
@@ -204,12 +196,12 @@ public:
 
     constexpr inline
     reference operator*() const noexcept
-    { return _current->value; }
+    { return _current->value(); }
 
     constexpr inline
     pointer operator->() const noexcept
     {
-        return std::pointer_traits<pointer>::pointer_to(_current->value);
+        return std::pointer_traits<pointer>::pointer_to(_current->value());
     }
 
     constexpr inline

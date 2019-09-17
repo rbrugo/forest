@@ -38,7 +38,6 @@ protected:
     using node_pointer          = node_allocator_traits::pointer;
     using node_const_pointer    = node_allocator_traits::const_pointer;
 
-    /* node_pointer _head; //NB: in gcc and clang, end is _end->next */
     node_type _end; // _end->root = root; _end->left = front; _end->right = back
     size_type _size;
     [[no_unique_address]] node_allocator _node_alloc;
@@ -111,6 +110,7 @@ void _tree_impl<T, Int, Alloc>::clear() noexcept
             }
             auto del = it;
             it = it->root;
+            node_allocator_traits::destroy(_node_alloc, std::addressof(del->value()));
             node_allocator_traits::destroy(_node_alloc, del);
             node_allocator_traits::deallocate(_node_alloc, del, 1);
         }
