@@ -64,6 +64,9 @@ public:
     constexpr inline
     _avl_tree_iterator & _all_down_left() noexcept
     {
+        if (_current->left == _current) {
+            return *this;
+        }
         while (_current->left != nullptr) {
             _current = _current->left;
         }
@@ -92,6 +95,9 @@ public:
     constexpr inline
     _avl_tree_iterator & _all_down_right() noexcept
     {
+        if (_current->right == _current) {
+            return *this;
+        }
         while (_current->right != nullptr) {
             _current = _current->right;
         }
