@@ -273,8 +273,8 @@ avl_tree<T, Compare, Alloc> & avl_tree<T, Compare, Alloc>::operator=(avl_tree &&
         _size = std::move(other._size);
     } else {
         if (_node_alloc != other._node_alloc) {
-            auto const mbegin = std::move_iterator(begin(other));
-            auto const mend = std::move_iterator(end(other));
+            auto const mbegin = std::move_iterator(other.begin());
+            auto const mend = std::move_iterator(other.end());
             assign(mbegin, mend);
         } else {
             clear();
