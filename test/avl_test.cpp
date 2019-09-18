@@ -48,7 +48,7 @@ struct ints
     int operator*() const { return value; }
 }; // struct ints
 
-TEST_CASE("avl_trees can be constructed in various ways", "[cons|assign]")
+TEST_CASE("avl_trees can be constructed in various ways", "[construction][assignment]")
 {
     SECTION("is default constructible") {
         auto _1 = avl_tree<int>();
@@ -74,8 +74,6 @@ TEST_CASE("avl_trees can be constructed in various ways", "[cons|assign]")
 
     GIVEN("a generic avl-tree") {
         auto _0 = avl_tree{1, 2, 4, 8, 16, 32, 64, 128};
-        /* auto std::begin(_0) = std::begin(_0); */
-        /* auto std::end(_0) = std::end(_0); */
 
         REQUIRE(_0.size() == 8);
         REQUIRE(std::is_sorted(std::begin(_0), std::end(_0)));
@@ -112,14 +110,10 @@ TEST_CASE("avl_trees can be constructed in various ways", "[cons|assign]")
                 REQUIRE(_1.size() == _0.size());
             }
             THEN("I can move-assign the second") {
-                CAPTURE(_0.size());
                 auto _2 = _0;
                 REQUIRE(std::equal(std::begin(_2), std::end(_2), std::begin(_0), std::end(_0)));
                 REQUIRE(_2.size() == _0.size());
-                CAPTURE(_2.size());
                 _1 = std::move(_2);
-                /* CAPTURE(_1); */
-                CAPTURE(_1.size());
                 REQUIRE(std::equal(std::begin(_1), std::end(_1), std::begin(_0), std::end(_0)));
             }
         }
@@ -188,6 +182,71 @@ TEST_CASE("avl-tree can be traversed using iterators", "[iterator]") {
             THEN("(begin()++)-- must be begin() at the end") {
                 auto it = _0.begin(); it++; it--;
                 REQUIRE(it == _0.begin());
+            }
+        }
+    }
+}
+
+template <typename T, typename ...Args>
+auto conditional_resources(auto & x, Args ...args)
+{
+    if constexpr (std::is_same_v<std::decay_t<T>, std::allocator<int>>) {
+        return avl_tree<int>(args...);
+    } else {
+        return avl_tree<int, std::less<>, T>(args..., &x);
+    }
+}
+using allocators = std::tuple<std::allocator<int>, std::pmr::polymorphic_allocator<int>>;
+TEMPLATE_LIST_TEST_CASE("avl-tree can be templated on various allocators",
+                        "[allocator][construction][assignment]", allocators)
+{
+    GIVEN("an allocator") {
+        auto buffer = std::array<std::byte, 128>{0};
+        auto pool = std::pmr::monotonic_buffer_resource{ std::data(buffer), std::size(buffer) };
+
+        THEN("the tree is default_constructible") {
+            auto _0 = conditional_resources<TestType>(pool);
+            REQUIRE(_0.empty());
+            auto it = _0.begin(); ++it; it--;
+            REQUIRE(it == _0.begin());
+        }
+        THEN("is constructible from an initializer list") {
+            auto _0 = conditional_resources<TestType>(pool, std::initializer_list<int>{0, 1, 1, 2, 3, 5, 8});
+            REQUIRE(_0.size() == 7);
+            REQUIRE(_0.front() == 0);
+            REQUIRE(_0.back() == 8);
+        }
+
+        GIVEN("another tree") {
+            auto const _0 = conditional_resources<TestType>(pool, std::initializer_list<int>{0, 1, 1, 2, 3, 5, 8});
+
+            THEN("avl-tree is copy-constructible") {
+                auto _1 = _0;
+                REQUIRE(_0.size() == _1.size());
+                REQUIRE(std::equal(begin(_0), end(_0), begin(_1), end(_1)));
+            }
+            THEN("avl-tree is copy-assignable") {
+                auto _2 = _0;
+                _2.emplace(*std::prev(_2.end()) + *std::prev(_2.end(), 2));
+                auto _1 = _2;
+                REQUIRE(_0.size() + 1 == _1.size());
+                REQUIRE(std::equal(begin(_0), end(_0), begin(_1), std::prev(end(_1))));
+                REQUIRE(_1.back() == 13);
+            }
+            THEN("avl-tree is move-constructible") {
+                auto _2 = _0;
+                auto _1 = std::move(_2);
+                REQUIRE(_0.size() == _1.size());
+                REQUIRE(std::equal(begin(_0), end(_0), begin(_1), end(_1)));
+            }
+            THEN("avl-tree is move-assignable") {
+                auto _2 = _0;
+                _2.emplace(*std::prev(_2.end()) + *std::prev(_2.end(), 2));
+                auto _1 = decltype(_0){};
+                _1 = std::move(_2);
+                REQUIRE(_0.size() + 1 == _1.size());
+                REQUIRE(std::equal(begin(_0), end(_0), begin(_1), std::prev(end(_1))));
+                REQUIRE(_1.back() == 13);
             }
         }
     }
