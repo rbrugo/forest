@@ -251,3 +251,49 @@ TEMPLATE_LIST_TEST_CASE("avl-tree can be templated on various allocators",
         }
     }
 }
+
+template <typename T>
+auto select(int x, std::string y)
+{
+    if constexpr (std::is_same_v<T, int>) {
+        return x;
+    } else {
+        return y;
+    }
+}
+
+TEMPLATE_TEST_CASE("One can search for objects in an avl-tree", "[lookup]", int, std::string)
+{
+    auto tree = avl_tree<TestType>{};
+    if constexpr (std::is_same_v<TestType, int>) {
+        tree.assign({0, 1, 2, 3, 5, 8});
+    } else if constexpr (std::is_same_v<TestType, std::string>) {
+        tree.assign({"Il", "lonfo", "non", "baterga," "nè", "gluisce"});
+    }
+
+    auto select = [](auto a, auto b) { return select<TestType>(a, std::move(b)); };
+    GIVEN("an avl-tree with some elements") {
+        THEN("using `.contains(X)` must return `true` if `X` is in the container") {
+            REQUIRE(tree.contains(select(0, "Il")));
+            REQUIRE(tree.contains(select(1, "lonfo")));
+            REQUIRE(tree.contains(select(2, "non")));
+            REQUIRE(tree.contains(select(3, "baterga")));
+            REQUIRE(tree.contains(select(5, "nè")));
+            REQUIRE(tree.contains(select(8, "gluisce")));
+            REQUIRE(!tree.contains(select(42, "barigatta")));
+            REQUIRE(!tree.contains(select(-7, "")));
+        }
+        THEN("using `.find(X)` must return an iterator to the elem `X`, or `end()` if `X` is not in the tree") {
+            auto const end = tree.cend();
+            auto it = tree.begin();
+            REQUIRE(tree.find(select(0, "Il")) == it++);
+            REQUIRE(tree.find(select(1, "lonfo")) == it++);
+            REQUIRE(tree.find(select(2, "non")) == it++);
+            REQUIRE(tree.find(select(3, "baterga")) == it++);
+            REQUIRE(tree.find(select(5, "nè")) == it++);
+            REQUIRE(tree.find(select(8, "gluisce")) == it);
+            REQUIRE(tree.find(select(42, "barigatta")) == end);
+            REQUIRE(tree.find(select(-7, "")) == end);
+        }
+    }
+}
