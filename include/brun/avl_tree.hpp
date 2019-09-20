@@ -12,6 +12,8 @@
 #include "detail/tree_impl.hpp"
 #include "detail/avl_tree_iterator.hpp"
 
+#include "meta/is_transparent_compare.hpp"
+
 namespace brun
 {
 
@@ -118,25 +120,36 @@ private:
 
 public:
     constexpr inline reference front()
-    {
-        return _first()->value();
-    }
+    { return _first()->value(); }
 
     constexpr inline const_reference front() const
-    {
-        return _first()->value();
-    }
+    { return _first()->value(); }
 
     constexpr inline reference back()
-    {
-        return _last()->value();
-    }
+    { return _last()->value(); }
 
     constexpr inline const_reference back() const
-    {
-        return _last()->value();
-    }
+    { return _last()->value(); }
 
+    /// Lookup
+private:
+    constexpr node_pointer _find_impl(value_type const & x);
+    constexpr node_const_pointer _find_impl(value_type const & x) const;
+    template <typename U> requires meta::is_transparent_compare<Compare>
+    constexpr auto _find_impl(U const & x) -> node_pointer;
+    template <typename U> requires meta::is_transparent_compare<Compare>
+    constexpr auto _find_impl(U const & x) const -> node_const_pointer;
+
+public:
+    constexpr inline bool contains(value_type const & x) const;
+    template <typename U> requires meta::is_transparent_compare<Compare>
+    constexpr inline auto contains(U const & x) const -> bool;
+    constexpr iterator find(value_type const & x);
+    constexpr const_iterator find(value_type const & x) const;
+    template <typename U> requires meta::is_transparent_compare<Compare>
+    constexpr auto find(U const & x) -> iterator;
+    template <typename U> requires meta::is_transparent_compare<Compare>
+    constexpr auto find(U const & x) const -> const_iterator;
 
 private:
     template <typename ...Args>
@@ -456,10 +469,133 @@ avl_tree<T, Compare, Alloc>::node_pointer avl_tree<T, Compare, Alloc>::_emplace(
 }
 
 template <typename T, typename Compare, typename Alloc>
+constexpr auto avl_tree<T, Compare, Alloc>::_find_impl(value_type const & x)
+    -> node_pointer
+{
+    auto it = _first();
+    while (it != nullptr) {
+        if (_cmp(it->value(), x)) {
+            it = it->left;
+        } else if (_cmp(x, it->value())) {
+            it = it->right;
+        } else {
+            return it;
+        }
+    }
+    return nullptr;
+}
+
+template <typename T, typename Compare, typename Alloc>
+constexpr auto avl_tree<T, Compare, Alloc>::_find_impl(value_type const & x) const
+    -> node_const_pointer
+{
+    auto it = _first();
+    while (it != nullptr) {
+        if (_cmp(it->value(), x)) {
+            it = it->left;
+        } else if (_cmp(x, it->value())) {
+            it = it->right;
+        } else {
+            return it;
+        }
+    }
+    return nullptr;
+}
+
+template <typename T, typename Compare, typename Alloc>
+template <typename U>
+    requires meta::is_transparent_compare<Compare>
+constexpr auto avl_tree<T, Compare, Alloc>::_find_impl(U const & x)
+    /* -> decltype(typename Compare::is_transparent(), node_pointer{}) */
+    -> node_pointer
+{
+    auto it = _first();
+    while (it != nullptr) {
+        if (_cmp(it->value(), x)) {
+            it = it->left;
+        } else if (_cmp(x, it->value())) {
+            it = it->right;
+        } else {
+            return it;
+        }
+    }
+    return nullptr;
+}
+
+template <typename T, typename Compare, typename Alloc>
+template <typename U>
+    requires meta::is_transparent_compare<Compare>
+constexpr auto avl_tree<T, Compare, Alloc>::_find_impl(U const & x) const
+    -> node_const_pointer
+{
+    auto it = _first();
+    while (it != nullptr) {
+        if (_cmp(it->value(), x)) {
+            it = it->left;
+        } else if (_cmp(x, it->value())) {
+            it = it->right;
+        } else {
+            return it;
+        }
+    }
+    return nullptr;
+}
+
+
+template <typename T, typename Compare, typename Alloc>
+constexpr inline bool avl_tree<T, Compare, Alloc>::contains(value_type const & x) const
+{
+    return _find_impl(x) != nullptr;
+}
+
+template <typename T, typename Compare, typename Alloc>
+template <typename U> requires meta::is_transparent_compare<Compare>
+constexpr inline auto avl_tree<T, Compare, Alloc>::contains(U const & x) const
+    -> bool
+{
+    return _find_impl(x) != nullptr;
+}
+
+template <typename T, typename Compare, typename Alloc>
+constexpr auto avl_tree<T, Compare, Alloc>::find(value_type const & x)
+    -> iterator
+{
+    auto found = _find_impl(x);
+    return found ? iterator{found} : end();
+}
+
+template <typename T, typename Compare, typename Alloc>
+constexpr auto avl_tree<T, Compare, Alloc>::find(value_type const & x) const
+    -> const_iterator
+{
+    auto found = _find_impl(x);
+    return found ? const_iterator{found} : end();
+}
+
+template <typename T, typename Compare, typename Alloc>
+template <typename U> requires meta::is_transparent_compare<Compare>
+constexpr auto avl_tree<T, Compare, Alloc>::find(U const & x)
+    -> iterator
+{
+    auto found = _find_impl(x);
+    return found ? iterator{found} : end();
+}
+
+template <typename T, typename Compare, typename Alloc>
+template <typename U> requires meta::is_transparent_compare<Compare>
+constexpr auto avl_tree<T, Compare, Alloc>::find(U const & x) const
+    -> const_iterator
+{
+    auto found = _find_impl(x);
+    return found ? iterator{found} : end();
+}
+
+template <typename T, typename Compare, typename Alloc>
 constexpr inline
 void swap(avl_tree<T, Compare, Alloc> & lhs, avl_tree<T, Compare, Alloc> & rhs)
     noexcept(noexcept(lhs.swap(rhs)))
 { lhs.swap(rhs); }
+
 
 } // namespace brun
 
