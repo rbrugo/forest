@@ -271,7 +271,7 @@ TEMPLATE_TEST_CASE("One can search for objects in an avl-tree", "[lookup]", int,
         tree.assign({"Il", "lonfo", "non", "baterga," "nè", "gluisce"});
     }
 
-    auto select = [](auto a, auto b) { return select<TestType>(a, std::move(b)); };
+    auto select = [](auto a, auto b) { return ::select<TestType>(a, std::move(b)); };
     GIVEN("an avl-tree with some elements") {
         THEN("using `.contains(X)` must return `true` if `X` is in the container") {
             REQUIRE(tree.contains(select(0, "Il")));
