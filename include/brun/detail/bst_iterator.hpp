@@ -80,8 +80,7 @@ public:
         _current = _current->root;
 
         if (_current->root == prev) {
-            //There's only one element: not doing this will start an infinite loop
-            return *this;
+            return *this; //There's only one element: not doing this will start an infinite loop
         }
 
         //if the root is _end.left, it will stop at `_end`
@@ -110,8 +109,7 @@ public:
         _current = _current->root;
 
         if (_current->root == prev) {
-            //In that case, there's only one element; not doing this will start an infinite cycle
-            return *this;
+            return *this;  //There's only one element; not doing this will start an infinite cycle
         }
 
         while (prev == _current->left) {
@@ -213,6 +211,9 @@ public:
     constexpr inline
     _bst_const_iterator & _all_down_left() noexcept
     {
+        if (_current->left == _current) {
+            return *this;
+        }
         while (_current->left != nullptr) {
             _current = _current->left;
         }
@@ -240,6 +241,9 @@ public:
     constexpr inline
     _bst_const_iterator & _all_down_right() noexcept
     {
+        if (_current->right == _current) {
+            return *this;
+        }
         while (_current->right != nullptr) {
             _current = _current->right;
         }
