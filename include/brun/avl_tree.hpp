@@ -115,6 +115,8 @@ private:
     constexpr inline node_pointer const & _last()  const noexcept { return _end.left; }
     constexpr inline node_pointer & _first() noexcept { return _end.right; }
     constexpr inline node_pointer & _last()  noexcept { return _end.left; }
+    constexpr inline node_pointer const & _root() const noexcept { return _end.root; }
+    constexpr inline node_pointer & _root() noexcept { return _end.root; }
 
     using base::_set_end;
 
@@ -472,12 +474,12 @@ template <typename T, typename Compare, typename Alloc>
 constexpr auto avl_tree<T, Compare, Alloc>::_find_impl(value_type const & x)
     -> node_pointer
 {
-    auto it = _first();
+    auto it = _root();
     while (it != nullptr) {
         if (_cmp(it->value(), x)) {
-            it = it->left;
-        } else if (_cmp(x, it->value())) {
             it = it->right;
+        } else if (_cmp(x, it->value())) {
+            it = it->left;
         } else {
             return it;
         }
@@ -489,12 +491,12 @@ template <typename T, typename Compare, typename Alloc>
 constexpr auto avl_tree<T, Compare, Alloc>::_find_impl(value_type const & x) const
     -> node_const_pointer
 {
-    auto it = _first();
+    auto it = _root();
     while (it != nullptr) {
         if (_cmp(it->value(), x)) {
-            it = it->left;
-        } else if (_cmp(x, it->value())) {
             it = it->right;
+        } else if (_cmp(x, it->value())) {
+            it = it->left;
         } else {
             return it;
         }
@@ -506,15 +508,14 @@ template <typename T, typename Compare, typename Alloc>
 template <typename U>
     requires meta::is_transparent_compare<Compare>
 constexpr auto avl_tree<T, Compare, Alloc>::_find_impl(U const & x)
-    /* -> decltype(typename Compare::is_transparent(), node_pointer{}) */
     -> node_pointer
 {
-    auto it = _first();
+    auto it = _root();
     while (it != nullptr) {
         if (_cmp(it->value(), x)) {
-            it = it->left;
-        } else if (_cmp(x, it->value())) {
             it = it->right;
+        } else if (_cmp(x, it->value())) {
+            it = it->left;
         } else {
             return it;
         }
@@ -528,12 +529,12 @@ template <typename U>
 constexpr auto avl_tree<T, Compare, Alloc>::_find_impl(U const & x) const
     -> node_const_pointer
 {
-    auto it = _first();
+    auto it = _root();
     while (it != nullptr) {
         if (_cmp(it->value(), x)) {
-            it = it->left;
-        } else if (_cmp(x, it->value())) {
             it = it->right;
+        } else if (_cmp(x, it->value())) {
+            it = it->left;
         } else {
             return it;
         }
@@ -578,7 +579,7 @@ constexpr auto avl_tree<T, Compare, Alloc>::find(U const & x)
     -> iterator
 {
     auto found = _find_impl(x);
-    return found ? iterator{found} : end();
+    return _find_impl(x) ? iterator{found} : end();
 }
 
 template <typename T, typename Compare, typename Alloc>
