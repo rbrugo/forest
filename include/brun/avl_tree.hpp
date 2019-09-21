@@ -10,7 +10,7 @@
 
 #include "detail/utils.hpp"
 #include "detail/tree_impl.hpp"
-#include "detail/avl_tree_iterator.hpp"
+#include "detail/bst_iterator.hpp"
 
 #include "meta/is_transparent_compare.hpp"
 
@@ -38,8 +38,8 @@ public:
     using const_pointer          = base::const_pointer;
     using size_type              = base::size_type;
     using difference_type        = base::difference_type;
-    using iterator               = detail::_avl_tree_iterator<value_type>;
-    using const_iterator         = detail::_avl_tree_const_iterator<value_type>;
+    using iterator               = detail::_bst_const_iterator<value_type>;
+    using const_iterator         = detail::_bst_const_iterator<value_type>;
     using reverse_iterator       = std::reverse_iterator<iterator>;
     using const_reverse_iterator = std::reverse_iterator<const_iterator>;
 
