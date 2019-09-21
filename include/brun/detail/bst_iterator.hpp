@@ -5,8 +5,8 @@
  * @license     : MIT
  * */
 
-#ifndef AVL_TREE_ITERATOR_HPP
-#define AVL_TREE_ITERATOR_HPP
+#ifndef BST_ITERATOR_HPP
+#define BST_ITERATOR_HPP
 
 #include <cstdint> //std::int_fast8_t, std::ptrdiff_t
 
@@ -20,15 +20,15 @@ template <class, class, class> class avl_tree;
 namespace brun :: detail
 {
 
-template <typename T> struct _avl_tree_iterator;
-template <typename T> struct _avl_tree_const_iterator;
+template <typename T> struct _bst_iterator;
+template <typename T> struct _bst_const_iterator;
 
 template <typename T>
-struct _avl_tree_iterator
+struct _bst_iterator
 {
 private:
     template <class, class, class> friend class brun::avl_tree;
-    template <class> friend class _avl_tree_const_iterator;
+    template <class> friend class _bst_const_iterator;
 
     using node_type         = node<T, std::int_fast8_t>;
     using node_pointer      = node_type *;
@@ -44,12 +44,12 @@ private:
     node_pointer _current = nullptr;
 
     explicit constexpr
-    _avl_tree_iterator(node_pointer ptr) noexcept
+    _bst_iterator(node_pointer ptr) noexcept
         : _current{ptr} {}
 
 public:
     constexpr inline
-    _avl_tree_iterator() noexcept = default;
+    _bst_iterator() noexcept = default;
 
     constexpr inline
     reference operator*() const noexcept
@@ -62,7 +62,7 @@ public:
     }
 
     constexpr inline
-    _avl_tree_iterator & _all_down_left() noexcept
+    _bst_iterator & _all_down_left() noexcept
     {
         if (_current->left == _current) {
             return *this;
@@ -74,7 +74,7 @@ public:
     }
 
     constexpr inline
-    _avl_tree_iterator & _up_left() noexcept
+    _bst_iterator & _up_left() noexcept
     {
         auto prev = _current;
         _current = _current->root;
@@ -93,7 +93,7 @@ public:
     }
 
     constexpr inline
-    _avl_tree_iterator & _all_down_right() noexcept
+    _bst_iterator & _all_down_right() noexcept
     {
         if (_current->right == _current) {
             return *this;
@@ -104,7 +104,7 @@ public:
         return *this;
     }
 
-    constexpr inline _avl_tree_iterator & _up_right() noexcept
+    constexpr inline _bst_iterator & _up_right() noexcept
     {
         auto prev = _current;
         _current = _current->root;
@@ -122,7 +122,7 @@ public:
     }
 
     constexpr
-    _avl_tree_iterator & operator++() noexcept
+    _bst_iterator & operator++() noexcept
     {
         if (_current == nullptr) {
             __builtin_unreachable();        // UREACHABLE - UB
@@ -136,10 +136,10 @@ public:
     }
 
     constexpr inline
-    _avl_tree_iterator operator++(int) noexcept { auto res = *this; ++(*this); return res; }
+    _bst_iterator operator++(int) noexcept { auto res = *this; ++(*this); return res; }
 
     constexpr
-    _avl_tree_iterator & operator--() noexcept
+    _bst_iterator & operator--() noexcept
     {
         if (_current == nullptr) {
             __builtin_unreachable();        // UREACHABLE - UB
@@ -153,28 +153,28 @@ public:
     }
 
     constexpr inline
-    _avl_tree_iterator operator--(int) noexcept { auto res = *this; --(*this); return res; }
+    _bst_iterator operator--(int) noexcept { auto res = *this; --(*this); return res; }
 
     friend constexpr inline
-    bool operator==(_avl_tree_iterator const & lhs, _avl_tree_iterator const & rhs) noexcept
+    bool operator==(_bst_iterator const & lhs, _bst_iterator const & rhs) noexcept
     {
         return lhs._current == rhs._current;
     }
 
     friend constexpr inline
-    bool operator!=(_avl_tree_iterator const & lhs, _avl_tree_iterator const & rhs) noexcept
+    bool operator!=(_bst_iterator const & lhs, _bst_iterator const & rhs) noexcept
     { return !(lhs == rhs); }
 
     friend constexpr inline
-    auto depth(_avl_tree_iterator<T> const & it) noexcept
+    auto depth(_bst_iterator<T> const & it) noexcept
     {
         return _height(it._current);
     }
 
-}; // struct _avl_tree_iterator
+}; // struct _bst_iterator
 
 template <typename T>
-struct _avl_tree_const_iterator
+struct _bst_const_iterator
 {
 private:
     template <class, class, class> friend class brun::avl_tree;
@@ -193,12 +193,12 @@ private:
     node_pointer _current = nullptr;
 
     explicit constexpr
-    _avl_tree_const_iterator(node_pointer ptr) noexcept
+    _bst_const_iterator(node_pointer ptr) noexcept
         : _current{ptr} {}
 
 public:
     constexpr inline
-    _avl_tree_const_iterator() noexcept = default;
+    _bst_const_iterator() noexcept = default;
 
     constexpr inline
     reference operator*() const noexcept
@@ -211,7 +211,7 @@ public:
     }
 
     constexpr inline
-    _avl_tree_const_iterator & _all_down_left() noexcept
+    _bst_const_iterator & _all_down_left() noexcept
     {
         while (_current->left != nullptr) {
             _current = _current->left;
@@ -220,7 +220,7 @@ public:
     }
 
     constexpr inline
-    _avl_tree_const_iterator & _up_left() noexcept
+    _bst_const_iterator & _up_left() noexcept
     {
         auto prev = _current;
         _current = _current->root;
@@ -238,7 +238,7 @@ public:
     }
 
     constexpr inline
-    _avl_tree_const_iterator & _all_down_right() noexcept
+    _bst_const_iterator & _all_down_right() noexcept
     {
         while (_current->right != nullptr) {
             _current = _current->right;
@@ -246,7 +246,7 @@ public:
         return *this;
     }
 
-    constexpr inline _avl_tree_const_iterator & _up_right() noexcept
+    constexpr inline _bst_const_iterator & _up_right() noexcept
     {
         auto prev = _current;
         _current = _current->root;
@@ -263,7 +263,7 @@ public:
     }
 
     constexpr
-    _avl_tree_const_iterator & operator++() noexcept
+    _bst_const_iterator & operator++() noexcept
     {
         if (_current == nullptr) {
             __builtin_unreachable();        // UREACHABLE - UB
@@ -277,10 +277,10 @@ public:
     }
 
     constexpr inline
-    _avl_tree_const_iterator operator++(int) noexcept { auto res = *this; ++(*this); return res; }
+    _bst_const_iterator operator++(int) noexcept { auto res = *this; ++(*this); return res; }
 
     constexpr
-    _avl_tree_const_iterator & operator--() noexcept
+    _bst_const_iterator & operator--() noexcept
     {
         if (_current == nullptr) {
             __builtin_unreachable();        // UREACHABLE - UB
@@ -294,47 +294,47 @@ public:
     }
 
     constexpr inline
-    _avl_tree_const_iterator operator--(int) noexcept { auto res = *this; --(*this); return res; }
+    _bst_const_iterator operator--(int) noexcept { auto res = *this; --(*this); return res; }
 
     friend constexpr inline
-    bool operator==(_avl_tree_const_iterator const & lhs, _avl_tree_const_iterator const & rhs) noexcept
+    bool operator==(_bst_const_iterator const & lhs, _bst_const_iterator const & rhs) noexcept
     {
         return lhs._current == rhs._current;
     }
 
     friend constexpr inline
-    bool operator!=(_avl_tree_const_iterator const & lhs, _avl_tree_const_iterator const & rhs) noexcept
+    bool operator!=(_bst_const_iterator const & lhs, _bst_const_iterator const & rhs) noexcept
     { return !(lhs == rhs); }
 
     template <typename U>
     constexpr inline
-    bool operator==(_avl_tree_iterator<U> const & rhs) const noexcept
+    bool operator==(_bst_iterator<U> const & rhs) const noexcept
     { return _current == rhs._current; }
 
     template <typename U>
     constexpr inline
-    bool operator!=(_avl_tree_iterator<U> const & rhs) const noexcept
+    bool operator!=(_bst_iterator<U> const & rhs) const noexcept
     { return _current != rhs.current; }
 
 
     friend constexpr inline
-    auto depth(_avl_tree_const_iterator<T> const & it) noexcept
+    auto depth(_bst_const_iterator<T> const & it) noexcept
     {
         return _height(it._current);
     }
-}; // struct _avl_tree_const_iterator
+}; // struct _bst_const_iterator
 
 template <typename T, typename U>
 constexpr inline
-bool operator!=(_avl_tree_iterator<U> const & lhs, _avl_tree_const_iterator<T> const & rhs) noexcept
+bool operator!=(_bst_iterator<U> const & lhs, _bst_const_iterator<T> const & rhs) noexcept
 { return rhs != lhs; }
 
 template <typename T, typename U>
 constexpr inline
-bool operator==(_avl_tree_iterator<U> const & lhs, _avl_tree_const_iterator<T> const & rhs) noexcept
+bool operator==(_bst_iterator<U> const & lhs, _bst_const_iterator<T> const & rhs) noexcept
 { return rhs == lhs; }
 
 } // namespace brun :: detail
 
-#endif /* AVL_TREE_ITERATOR_HPP */
+#endif /* BST_ITERATOR_HPP */
 
