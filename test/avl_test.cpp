@@ -253,7 +253,7 @@ TEMPLATE_LIST_TEST_CASE("avl-tree can be templated on various allocators",
 }
 
 template <typename T>
-auto select(int x, std::string y)
+auto select([[maybe_unused]] int x, [[maybe_unused]] std::string y)
 {
     if constexpr (std::is_same_v<T, int>) {
         return x;
@@ -268,7 +268,7 @@ TEMPLATE_TEST_CASE("One can search for objects in an avl-tree", "[lookup]", int,
     if constexpr (std::is_same_v<TestType, int>) {
         tree.assign({0, 1, 2, 3, 5, 8});
     } else if constexpr (std::is_same_v<TestType, std::string>) {
-        tree.assign({"Il", "lonfo", "non", "baterga," "nè", "gluisce"});
+        tree.assign({"Il", "lonfo", "non", "vaterca", "ne", "gluisce"});
     }
 
     auto select = [](auto a, auto b) { return ::select<TestType>(a, std::move(b)); };
@@ -277,8 +277,8 @@ TEMPLATE_TEST_CASE("One can search for objects in an avl-tree", "[lookup]", int,
             REQUIRE(tree.contains(select(0, "Il")));
             REQUIRE(tree.contains(select(1, "lonfo")));
             REQUIRE(tree.contains(select(2, "non")));
-            REQUIRE(tree.contains(select(3, "baterga")));
-            REQUIRE(tree.contains(select(5, "nè")));
+            REQUIRE(tree.contains(select(3, "vaterca")));
+            REQUIRE(tree.contains(select(5, "ne")));
             REQUIRE(tree.contains(select(8, "gluisce")));
             REQUIRE(!tree.contains(select(42, "barigatta")));
             REQUIRE(!tree.contains(select(-7, "")));
@@ -287,11 +287,11 @@ TEMPLATE_TEST_CASE("One can search for objects in an avl-tree", "[lookup]", int,
             auto const end = tree.cend();
             auto it = tree.begin();
             REQUIRE(tree.find(select(0, "Il")) == it++);
-            REQUIRE(tree.find(select(1, "lonfo")) == it++);
-            REQUIRE(tree.find(select(2, "non")) == it++);
-            REQUIRE(tree.find(select(3, "baterga")) == it++);
-            REQUIRE(tree.find(select(5, "nè")) == it++);
-            REQUIRE(tree.find(select(8, "gluisce")) == it);
+            REQUIRE(tree.find(select(1, "gluisce")) == it++);
+            REQUIRE(tree.find(select(2, "lonfo")) == it++);
+            REQUIRE(tree.find(select(3, "ne")) == it++);
+            REQUIRE(tree.find(select(5, "non")) == it++);
+            REQUIRE(tree.find(select(8, "vaterca")) == it);
             REQUIRE(tree.find(select(42, "barigatta")) == end);
             REQUIRE(tree.find(select(-7, "")) == end);
         }
