@@ -5,8 +5,8 @@
  * @license     : MIT
  * */
 
-#ifndef NODE_HPP
-#define NODE_HPP
+#ifndef DETAIL_NODE_HPP
+#define DETAIL_NODE_HPP
 
 #include <cmath>    //std::max
 #include <new>
@@ -63,5 +63,5 @@ template <class T, typename Int>
 
 } // namespace brun :: detail
 
-#endif /* NODE_HPP */
+#endif /* DETAIL_NODE_HPP */
 
