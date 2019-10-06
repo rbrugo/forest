@@ -80,7 +80,7 @@ public:
     void assign(Iterator f, Iterator l);
 
     constexpr inline
-    size_type get_allocator() const noexcept;
+    allocator_type get_allocator() const noexcept { return base::get_allocator(); }
 
     constexpr inline
     size_type size() const noexcept { return base::_size; }
