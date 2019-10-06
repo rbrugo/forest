@@ -53,6 +53,9 @@ protected:
     constexpr void clear() noexcept;
     constexpr bool empty() const noexcept { return _size == 0; }
 
+    constexpr inline
+    allocator_type get_allocator() const noexcept { return allocator_type(_node_alloc); }
+
     constexpr void swap(_tree_impl & other)
         noexcept(noexcept(std::allocator_traits<allocator_type>::is_always_equal::value));
 
