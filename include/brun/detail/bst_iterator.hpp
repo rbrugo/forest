@@ -15,6 +15,7 @@
 namespace brun
 {
 template <class, class, class> class avl_tree;
+template <class, class, class> class binary_search_tree;
 } // namespace brun
 
 namespace brun :: detail
@@ -27,6 +28,7 @@ template <typename T>
 struct _bst_iterator
 {
 private:
+    template <class, class, class> friend class brun::binary_search_tree;
     template <class, class, class> friend class brun::avl_tree;
     template <class> friend class _bst_const_iterator;
 
@@ -34,9 +36,10 @@ private:
     using node_pointer      = node_type *;
 public:
     using value_type        = T;
-    using reference         = value_type &;
+    using reference         = value_type const &;
     using const_reference   = value_type const &;
-    using pointer           = value_type *;
+    using pointer           = value_type const *;
+    using const_pointer     = value_type const *;
     using difference_type   = std::ptrdiff_t;
     using iterator_category = std::bidirectional_iterator_tag;
 
@@ -175,6 +178,7 @@ template <typename T>
 struct _bst_const_iterator
 {
 private:
+    template <class, class, class> friend class brun::binary_search_tree;
     template <class, class, class> friend class brun::avl_tree;
 
     using node_type         = node<T, std::int_fast8_t>;
@@ -184,6 +188,7 @@ public:
     using reference         = value_type const &;
     using const_reference   = value_type const &;
     using pointer           = value_type const *;
+    using const_pointer     = value_type const *;
     using difference_type   = std::ptrdiff_t;
     using iterator_category = std::bidirectional_iterator_tag;
 
@@ -231,7 +236,7 @@ public:
         }
 
         //if the root is _end.left, it will stop at `end`
-        while (prev == _current->right) {
+        while (prev == _current->right && _current->right != _current->root) {
             prev = _current;
             _current = _current->root;
         }
