@@ -211,6 +211,7 @@ TEST_CASE("It is possible to extract and insert nodes, and merge trees", "[extra
             auto unified = std::set<int>(a.begin(), a.end()); unified.insert(b.begin(), b.end());
 
             REQUIRE(std::equal(begin(unified), end(unified), begin(a2), end(a2)));
+            REQUIRE(b2.empty());
         }
     }
 }
