@@ -83,8 +83,8 @@ TEST_CASE("binary_search_trees can be constructed and assigned in various ways",
         THEN("I can construct another bst with another Compare from it, using iterators")
         {
             auto reversed = binary_search_tree<int, std::greater<>>(tree.begin(), tree.end());
-            REQUIRE(std::equal(tree.begin(), tree.end(), from_rit.rbegin(), from_rit.rend()));
-            REQUIRE(std::equal(tree.begin(), tree.end(), from_rit.crbegin(), from_rit.crend()));
+            REQUIRE(std::equal(tree.begin(), tree.end(), reversed.rbegin(), reversed.rend()));
+            REQUIRE(std::equal(tree.begin(), tree.end(), reversed.crbegin(), reversed.crend()));
         }
 
         THEN("I can assign an initializer_list to it")
@@ -106,9 +106,11 @@ TEST_CASE("binary_search_trees can be constructed and assigned in various ways",
                 other = tree;
                 REQUIRE(std::equal(tree.begin(), tree.end(), other.begin(), other.end()));
             }
-            THEN("it can be move-assigned")
+            THEN("it can be move-assigned") {
                 auto other = binary_search_tree<int>{0, -1, 1, -2, 2, -3, 3};
-                other = std::move(tree);
+                auto copy = tree;
+                other = std::move(copy);
+                REQUIRE(copy.empty());
                 REQUIRE(std::equal(tree.begin(), tree.end(), other.begin(), other.end()));
             }
         }
@@ -180,6 +182,35 @@ TEMPLATE_TEST_CASE("One can search for objects in a bst", "[lookup]", int, std::
             REQUIRE(tree.find(select(8, "vaterca")) == it);
             REQUIRE(tree.find(select(42, "barigatta")) == end);
             REQUIRE(tree.find(select(-7, "")) == end);
+        }
+    }
+}
+
+TEST_CASE("It is possible to extract and insert nodes, and merge trees", "[extract][insert][merge]")
+{
+    GIVEN("two bst A and B with some elements") {
+        auto a = binary_search_tree<int>{1, 1, 2, 3, 5};
+        auto b = binary_search_tree<int>{0, 8, 13, 21, 34};
+        THEN("is possible to extract an element from A and merge it to B") {
+            auto n1 = b.extract(34);
+            REQUIRE(b.back() == 21);
+            REQUIRE(n1.value() == 34);
+            auto n2 = b.extract(8);
+            REQUIRE(b.front() == 8);
+            REQUIRE(n2.value() == 0);
+
+            a.insert(n1);
+            REQUIRE(a.back() == 34);
+            a.insert(n2);
+            REQUIRE(a.front() == 0);
+        }
+        THEN("is possible to merge the two containers") {
+            auto a2 = a;
+            auto b2 = b;
+            a2.merge(b2);
+            auto unified = std::set<int>(a.begin(), a.end()); unified.insert(b.begin(), b.end());
+
+            REQUIRE(std::equal(begin(unified), end(unified), begin(a2), end(a2)));
         }
     }
 }
