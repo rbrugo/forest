@@ -29,7 +29,8 @@ constexpr inline auto is_input_iterator_v = is_input_iterator<Iterator>::value;
 template <typename Node, typename Alloc>
 struct _node_deallocator
 {
-    using allocator_type        = Alloc; //typename std::allocator_traits<Alloc>::template rebind_alloc<T>;
+    using value_type            = typename Node::value_type;
+    using allocator_type        = typename std::allocator_traits<Alloc>::template rebind_alloc<value_type>;
     using allocator_traits      = std::allocator_traits<allocator_type>;
     using node_allocator        = allocator_traits::template rebind_alloc<Node>;
     using node_allocator_traits = std::allocator_traits<node_allocator>;
@@ -40,16 +41,16 @@ struct _node_deallocator
     int8_t constructed = 0;
     constexpr inline _node_deallocator(node_allocator & a) : _alloc{a} {}
 
-    constexpr inline void operator()(allocator_traits::pointer ptr) noexcept
+    constexpr inline void operator()(node_allocator_traits::pointer ptr) noexcept
     {
-        auto node_alloc = node_allocator{_alloc};
+        auto value_alloc = allocator_type{_alloc};
         if (constructed > 0) {
             if (constructed > 1) {
-                allocator_traits::destroy(_alloc, std::addressof(ptr->value()));
+                allocator_traits::destroy(value_alloc, std::addressof(ptr->value()));
             }
-            node_allocator_traits::destroy(node_alloc, ptr);
+            node_allocator_traits::destroy(_alloc, ptr);
         }
-        node_allocator_traits::deallocate(node_alloc, ptr, 1);
+        node_allocator_traits::deallocate(_alloc, ptr, 1);
     }
 }; // struct _node_deallocator
 

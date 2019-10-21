@@ -46,19 +46,18 @@ public:
     constexpr inline node_handle & operator=(node_handle && other);
     node_handle(node_handle const &) = delete;
     node_handle & operator=(node_handle const &) = delete;
+    constexpr inline node_handle(node * ptr, allocator_type alloc) :
+        _storage{ptr}, _alloc{alloc} { }
+
     inline ~node_handle() noexcept
     {
         if (_storage) {
-            auto alloc = node_allocator{*_alloc};
+            auto node_alloc = node_allocator{*_alloc};
             allocator_traits::destroy(*_alloc, std::addressof(_storage->value()));
-            node_allocator_traits::destroy(alloc, _storage);
-            node_allocator_traits::deallocate(alloc, _storage, 1);
+            node_allocator_traits::destroy(node_alloc, _storage);
+            node_allocator_traits::deallocate(node_alloc, _storage, 1);
         }
     }
-
-    constexpr inline node_handle(node * ptr, allocator_type alloc) :
-        _alloc{alloc}, _storage{ptr} { }
-
 
     [[nodiscard]] constexpr inline bool empty() const noexcept { return !_storage; }
     constexpr inline operator bool() const noexcept { return empty(); }
