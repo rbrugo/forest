@@ -152,10 +152,10 @@ public:
     template <typename ...Args>
     constexpr reference emplace(Args&&... args);
 
-    //template <typename Cmp2>
-    //constexpr void merge(binary_search_tree<value_type, Cmp2, allocator_type> & source);
-    //template <typename Cmp2>
-    //constexpr void merge(binary_search_tree<value_type, Cmp2, allocator_type> && source);
+    template <typename Cmp2>
+    constexpr void merge(binary_search_tree<value_type, Cmp2, allocator_type> & source);
+    template <typename Cmp2>
+    constexpr void merge(binary_search_tree<value_type, Cmp2, allocator_type> && source);
 
     /// Lookup
 private:
@@ -215,9 +215,6 @@ private:
 
     constexpr
     static void _unlink_exchange(node * unlink, node * repl) noexcept;
-
-    /* constexpr inline */
-    /* static void node_swap(node & a, node & b); */
 
     template <typename ...Args>
     constexpr inline
@@ -375,6 +372,29 @@ auto binary_search_tree<T, Compare, Alloc>::emplace(Args&&... args)
     return _emplace(std::move(_new_node))->value();
 }
 
+
+template <typename T, typename Compare, typename Alloc>
+template <typename Cmp2>
+constexpr
+void binary_search_tree<T, Compare, Alloc>::merge(binary_search_tree<value_type, Cmp2, allocator_type> & source)
+{
+    auto it = source.begin();
+    while (it != source.end()) {
+        insert(source.extract(it));
+    }
+}
+
+template <typename T, typename Compare, typename Alloc>
+template <typename Cmp2>
+constexpr
+void binary_search_tree<T, Compare, Alloc>::merge(binary_search_tree<value_type, Cmp2, allocator_type> && source)
+{
+    auto it = source.begin();
+    while (it != source.end()) {
+        insert(source.extract(it));
+    }
+}
+
 template <typename T, typename Compare, typename Alloc>
 constexpr
 auto binary_search_tree<T, Compare, Alloc>::insert(value_type const & value)
@@ -391,6 +411,17 @@ auto binary_search_tree<T, Compare, Alloc>::insert(value_type && value)
 {
     auto _new_node = _construct_node(_node_alloc, std::move(value));
     return iterator{_emplace(std::move(_new_node))};
+}
+
+template <typename T, typename Compare, typename Alloc>
+constexpr inline
+auto binary_search_tree<T, Compare, Alloc>::insert(node_handle && n)
+    -> iterator
+{
+    auto hold = _hold_ptr(n._storage, _node_deallocator(_node_alloc));
+    hold.get_deleter().constructed = 2;
+    n._storage = nullptr;
+    return iterator{_emplace(std::move(hold))};
 }
 
 template <typename T, typename Compare, typename Alloc>
@@ -438,14 +469,6 @@ auto binary_search_tree<T, Compare, Alloc>::_emplace(_hold_ptr && hold)
     __builtin_unreachable();
 }
 
-template <typename T, typename Compare, typename Alloc>
-constexpr inline
-auto binary_search_tree<T, Compare, Alloc>::insert(node_handle && n)
-    -> iterator
-{
-    auto hold = std::move(n._storage);
-    return insert(std::move(hold));
-}
 
 template <typename T, typename Compare, typename Alloc>
 constexpr auto binary_search_tree<T, Compare, Alloc>::_find_impl(value_type const & x)
@@ -631,6 +654,7 @@ constexpr auto binary_search_tree<T, Compare, Alloc>::extract(iterator it)
         _unlink(it._current);
     }
 
+    --_size;
     return node_handle{it._current, _node_alloc};
 }
 
