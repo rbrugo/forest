@@ -60,6 +60,7 @@ public:
     }
 
     [[nodiscard]] constexpr inline bool empty() const noexcept { return !_storage; }
+    explicit
     constexpr inline operator bool() const noexcept { return empty(); }
 
     constexpr inline allocator_type get_allocator() const { return *_alloc; }
