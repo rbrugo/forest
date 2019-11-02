@@ -195,7 +195,7 @@ TEST_CASE("It is possible to extract and insert nodes, and merge trees", "[extra
             auto n1 = b.extract(34);
             REQUIRE(b.back() == 21);
             REQUIRE(n1.value() == 34);
-            auto n2 = b.extract(8);
+            auto n2 = b.extract(0);
             REQUIRE(b.front() == 8);
             REQUIRE(n2.value() == 0);
 
