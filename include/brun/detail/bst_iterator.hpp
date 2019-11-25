@@ -87,7 +87,7 @@ public:
         }
 
         //if the root is _end.left, it will stop at `_end`
-        while (prev == _current->right) {
+        while (prev == _current->right && _current->right != _current->root) {
             prev = _current;
             _current = _current->root;
         }
