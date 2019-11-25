@@ -211,10 +211,7 @@ private:
     static auto is_left_child(node const * root, node const * child) -> bool;
 
     constexpr
-    static void _unlink(node * unlink) noexcept;
-
-    constexpr
-    static void _unlink_exchange(node * unlink, node * repl) noexcept;
+    static void _unlink_join(node * unlink) noexcept;
 
     template <typename ...Args>
     constexpr inline
@@ -380,7 +377,8 @@ void binary_search_tree<T, Compare, Alloc>::merge(binary_search_tree<value_type,
 {
     auto it = source.begin();
     while (it != source.end()) {
-        insert(source.extract(it));
+        auto tmp = it++;
+        insert(source.extract(tmp));
     }
 }
 
@@ -391,7 +389,8 @@ void binary_search_tree<T, Compare, Alloc>::merge(binary_search_tree<value_type,
 {
     auto it = source.begin();
     while (it != source.end()) {
-        insert(source.extract(it));
+        auto tmp = it++;
+        insert(source.extract(tmp));
     }
 }
 
@@ -600,60 +599,88 @@ constexpr auto binary_search_tree<T, Compare, Alloc>::is_left_child(node const *
 }
 
 template <typename T, typename Compare, typename Alloc>
-constexpr void binary_search_tree<T, Compare, Alloc>::_unlink(node * unlink) noexcept
+constexpr void binary_search_tree<T, Compare, Alloc>::_unlink_join(node * unlink) noexcept
 {
-    auto const parent = unlink->root;
+    auto const root  = unlink->root;
+    auto const left  = unlink->left;
+    auto const right = unlink->right;
 
-    if (is_left_child(parent, unlink)) {
-        parent->left  = nullptr;
-    } else {
-        parent->right = nullptr;
+    bool const is_left = is_left_child(root, unlink);
+    bool const has_left   = left  != nullptr;
+    bool const has_right  = right != nullptr;
+
+    if (not has_left and not has_right) { // no children
+        (is_left ? root->left : root->right) = nullptr;
+        unlink->root = nullptr;
+        return;
     }
+    if (has_left != has_right) { // one child
+        auto son = has_left ? left : right;
+        (is_left ? root->left : root->right) = son;
+        son->root = root;
 
-    unlink->root = unlink->left = unlink->right = nullptr;
+        unlink->left = unlink->right = unlink->root = nullptr;
+        return;
+    }
+    // two children
+    auto repl = std::prev(iterator{unlink})._current;
+    auto exchange = [](node * unlink, node * repl) noexcept
+    {
+        if (unlink == nullptr or repl == nullptr) {
+            std::terminate();
+        }
+
+        auto & u_from_root = is_left_child(unlink->root, unlink) ? unlink->root->left : unlink->root->right;
+        auto & r_from_root = is_left_child(repl->root, repl)     ? repl->root->left   : repl->root->right;
+        std::swap(u_from_root, repl);
+        std::swap(r_from_root, unlink);
+        std::swap(unlink->left->root,  repl->left->root);
+        std::swap(unlink->right->root, repl->right->root);
+
+        std::swap(unlink->root,   repl->root);
+        std::swap(unlink->left,   repl->left);
+        std::swap(unlink->right,  repl->right);
+        std::swap(unlink->height, repl->height);
+    };
+
+    exchange(unlink, repl);
+    unlink->left = unlink->right = unlink->root = nullptr;
     unlink->height = 0;
-}
-
-template <typename T, typename Compare, typename Alloc>
-constexpr void binary_search_tree<T, Compare, Alloc>::_unlink_exchange(node * unlink, node * repl) noexcept
-{
-    auto const uR = unlink->root;
-    auto const ul = unlink->left;
-    auto const ur = unlink->right;
-
-    if (is_left_child(uR, unlink)) {
-        uR->left  = repl;
-    } else {
-        uR->right = repl;
-    }
-
-    ul->root = repl;
-    ur->root = repl;
-
-    repl->root   = std::exchange(unlink->root,  nullptr);
-    repl->left   = std::exchange(unlink->left,  nullptr);
-    repl->right  = std::exchange(unlink->right, nullptr);
-    repl->height = std::exchange(unlink->height, 0);
 }
 
 template <typename T, typename Compare, typename Alloc>
 constexpr auto binary_search_tree<T, Compare, Alloc>::extract(iterator it)
     -> node_handle
 {
-    auto const is_leaf = [](auto * n) noexcept { return n->left == nullptr and n->right == nullptr; };
-    // it may not be a leaf, in that case I need to swap it with an adiacent leaf value
-    if (not is_leaf(it._current)) {
-        auto leaf = std::next(it);
-        auto const end = this->end();
-        while (not is_leaf(leaf._current) and leaf != end) {
-            ++leaf;
+    auto new_anchor = _end;
+    if (size() > 1) {
+        if (it._current == _first()) {
+            if (std::next(it) != end()) {
+                new_anchor.right = std::next(it)._current;
+            } else {
+                new_anchor.right = std::addressof(_end);
+            }
+        } else if (it._current == _last()) {
+            if (it != begin()) {
+                new_anchor.left = std::prev(it)._current;
+            } else {
+                new_anchor.left = std::addressof(_end);
+            }
         }
-        _unlink_exchange(it._current, leaf._current);
-        // Now it is a leaf
+        if (it._current == _root()) {
+            if (it != begin()) {
+                new_anchor.root = std::prev(it)._current;
+            } else {
+                new_anchor.root = std::next(it)._current;
+            }
+        }
     } else {
-        _unlink(it._current);
+        new_anchor.left = new_anchor.right = new_anchor.root = std::addressof(_end);
     }
+    // it may not be a leaf, in that case I need to swap it with an adiacent leaf value
+    _unlink_join(it._current);
 
+    _end = new_anchor;
     --_size;
     return node_handle{it._current, _node_alloc};
 }
