@@ -33,7 +33,7 @@ public:
 
     using allocator_type        = typename std::allocator_traits<Alloc>::template rebind_alloc<T>;
     using allocator_traits      = std::allocator_traits<allocator_type>;
-    using node_allocator        = allocator_traits::template rebind_alloc<node>;
+    using node_allocator        = typename allocator_traits::template rebind_alloc<node>;
     using node_allocator_traits = std::allocator_traits<node_allocator>;
 
 private:

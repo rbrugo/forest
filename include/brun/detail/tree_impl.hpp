@@ -23,8 +23,8 @@ public:
     using allocator_type  = Alloc;
     using reference       = value_type &;
     using const_reference = value_type const &;
-    using pointer         = std::allocator_traits<allocator_type>::pointer;
-    using const_pointer   = std::allocator_traits<allocator_type>::const_pointer;
+    using pointer         = typename std::allocator_traits<allocator_type>::pointer;
+    using const_pointer   = typename std::allocator_traits<allocator_type>::const_pointer;
     using size_type       = std::size_t;
     using difference_type = std::ptrdiff_t;
     using height_type           = Int;
@@ -33,10 +33,10 @@ public:
 protected:
     using alloc_type            = typename std::allocator_traits<Alloc>::template rebind_alloc<T>;
     using alloc_traits          = std::allocator_traits<alloc_type>;
-    using node_allocator        = alloc_traits::template rebind_alloc<node_type>;
+    using node_allocator        = typename alloc_traits::template rebind_alloc<node_type>;
     using node_allocator_traits = std::allocator_traits<node_allocator>;
-    using node_pointer          = node_allocator_traits::pointer;
-    using node_const_pointer    = node_allocator_traits::const_pointer;
+    using node_pointer          = typename node_allocator_traits::pointer;
+    using node_const_pointer    = typename node_allocator_traits::const_pointer;
 
     node_type _end; // _end->root = root; _end->left = front; _end->right = back
     size_type _size;

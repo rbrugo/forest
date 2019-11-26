@@ -34,7 +34,7 @@ struct node
     node_ptr right = nullptr;
 
 private:
-    std::aligned_storage<sizeof(T), alignof(T)>::type _storage;
+    typename std::aligned_storage<sizeof(T), alignof(T)>::type _storage;
 }; // struct node
 
 template <typename T, typename Int>
