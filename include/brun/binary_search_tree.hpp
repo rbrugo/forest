@@ -24,11 +24,11 @@ class binary_search_tree : private detail::_tree_impl<T, std::int_fast8_t, Alloc
 {
 public:
     using base                  = detail::_tree_impl<T, std::int_fast8_t, Alloc>;
-    using node                  = base::node_type;
-    using node_allocator        = base::node_allocator;
-    using node_allocator_traits = base::node_allocator_traits;
-    using node_pointer          = base::node_pointer;
-    using node_const_pointer    = base::node_const_pointer;
+    using node                  = typename base::node_type;
+    using node_allocator        = typename base::node_allocator;
+    using node_allocator_traits = typename base::node_allocator_traits;
+    using node_pointer          = typename base::node_pointer;
+    using node_const_pointer    = typename base::node_const_pointer;
     using compare_type          = Compare;
     using height_type           = std::int_fast8_t;
 public:
@@ -36,15 +36,15 @@ public:
     using allocator_type         = Alloc;
     using reference              = value_type &;
     using const_reference        = value_type const &;
-    using pointer                = base::pointer;
-    using const_pointer          = base::const_pointer;
-    using size_type              = base::size_type;
-    using difference_type        = base::difference_type;
+    using pointer                = typename base::pointer;
+    using const_pointer          = typename base::const_pointer;
+    using size_type              = typename base::size_type;
+    using difference_type        = typename base::difference_type;
     using iterator               = detail::_bst_iterator<value_type>;
     using const_iterator         = detail::_bst_const_iterator<value_type>;
     using reverse_iterator       = std::reverse_iterator<iterator>;
     using const_reverse_iterator = std::reverse_iterator<const_iterator>;
-    using node_type              = base::node_type;
+    using node_type              = typename base::node_type;
 
 protected:
     using node_handle           = brun::node_handle<value_type, height_type, allocator_type>;
