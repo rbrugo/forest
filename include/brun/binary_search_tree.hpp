@@ -44,8 +44,9 @@ public:
     using const_iterator         = detail::_bst_const_iterator<value_type>;
     using reverse_iterator       = std::reverse_iterator<iterator>;
     using const_reverse_iterator = std::reverse_iterator<const_iterator>;
+    using node_type              = base::node_type;
 
-private:
+protected:
     using node_handle           = brun::node_handle<value_type, height_type, allocator_type>;
     using _node_deallocator     = detail::_node_deallocator<node, node_allocator>;
     using _hold_ptr             = std::unique_ptr<node, _node_deallocator>;
@@ -119,7 +120,7 @@ public:
     constexpr inline const_reverse_iterator crend() const noexcept { return const_reverse_iterator{begin()}; }
 
     /// Access
-private:
+protected:
     constexpr inline node_pointer const & _first() const noexcept { return _end.right; }
     constexpr inline node_pointer const & _last()  const noexcept { return _end.left; }
     constexpr inline node_pointer & _first() noexcept { return _end.right; }
@@ -141,7 +142,7 @@ public:
     constexpr node_handle extract(iterator it);
     constexpr node_handle extract(value_type const & value);
 
-private:
+protected:
     constexpr node_pointer _emplace(_hold_ptr && hold);
 
 public:
@@ -158,7 +159,7 @@ public:
     constexpr void merge(binary_search_tree<value_type, Cmp2, allocator_type> && source);
 
     /// Lookup
-private:
+protected:
     constexpr node_pointer _find_impl(value_type const & x);
     constexpr node_const_pointer _find_impl(value_type const & x) const;
     template <typename U> requires meta::is_transparent_compare<Compare>
@@ -206,7 +207,7 @@ public:
         noexcept(noexcept(std::allocator_traits<node_allocator>::is_always_equal::value))
     { base::swap(other); }
 
-private:
+protected:
     constexpr
     static auto is_left_child(node const * root, node const * child) -> bool;
 

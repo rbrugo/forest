@@ -8,20 +8,16 @@
 #ifndef AVL_TREE_HPP
 #define AVL_TREE_HPP
 
-#include "detail/utils.hpp"
-#include "detail/tree_impl.hpp"
-#include "detail/bst_iterator.hpp"
-
-#include "meta/is_transparent_compare.hpp"
+#include "binary_search_tree.hpp"
 
 namespace brun
 {
 
 template <class T, class Compare = std::less<>, class Alloc = std::allocator<T>>
-class avl_tree : private detail::_tree_impl<T, std::int_fast8_t, Alloc>
+class avl_tree : protected binary_search_tree<T, Compare, Alloc>
 {
-public:
-    using base                  = detail::_tree_impl<T, std::int_fast8_t, Alloc>;
+protected:
+    using base                  = binary_search_tree<T, Compare, Alloc>;
     using node                  = base::node_type;
     using node_allocator        = base::node_allocator;
     using node_allocator_traits = base::node_allocator_traits;
@@ -29,6 +25,7 @@ public:
     using node_const_pointer    = base::node_const_pointer;
     using compare_type          = Compare;
     using height_type           = std::int_fast8_t;
+
 public:
     using value_type             = T;
     using allocator_type         = Alloc;
@@ -38,8 +35,8 @@ public:
     using const_pointer          = base::const_pointer;
     using size_type              = base::size_type;
     using difference_type        = base::difference_type;
-    using iterator               = detail::_bst_const_iterator<value_type>;
-    using const_iterator         = detail::_bst_const_iterator<value_type>;
+    using iterator               = base::iterator;
+    using const_iterator         = base::const_iterator;
     using reverse_iterator       = std::reverse_iterator<iterator>;
     using const_reverse_iterator = std::reverse_iterator<const_iterator>;
 
@@ -90,13 +87,11 @@ public:
 
     constexpr inline
     size_type max_size() const noexcept
-    {
-        return std::min<size_type>(base::max_size(), std::numeric_limits<difference_type>::max());
-    }
+    { return base::max_size(); }
 
     /// Iterators
-    constexpr inline iterator begin() noexcept { return iterator{_first()}; }
-    constexpr inline const_iterator begin() const noexcept { return const_iterator{_first()}; }
+    constexpr inline iterator begin() noexcept { return iterator{base::_first()}; }
+    constexpr inline const_iterator begin() const noexcept { return const_iterator{base::_first()}; }
     constexpr inline iterator end() noexcept { return iterator{std::addressof(_end)}; }
     constexpr inline const_iterator end() const noexcept { return const_iterator{std::addressof(_end)}; }
     constexpr inline const_iterator cbegin() const noexcept { return begin(); }
@@ -110,39 +105,12 @@ public:
     constexpr inline const_reverse_iterator rcend() const noexcept { return const_reverse_iterator{begin()}; }
 
     /// Access
-private:
-    constexpr inline node_pointer const & _first() const noexcept { return _end.right; }
-    constexpr inline node_pointer const & _last()  const noexcept { return _end.left; }
-    constexpr inline node_pointer & _first() noexcept { return _end.right; }
-    constexpr inline node_pointer & _last()  noexcept { return _end.left; }
-    constexpr inline node_pointer const & _root() const noexcept { return _end.root; }
-    constexpr inline node_pointer & _root() noexcept { return _end.root; }
-
-    using base::_set_end;
-
-public:
-    constexpr inline reference front()
-    { return _first()->value(); }
-
-    constexpr inline const_reference front() const
-    { return _first()->value(); }
-
-    constexpr inline reference back()
-    { return _last()->value(); }
-
-    constexpr inline const_reference back() const
-    { return _last()->value(); }
+    constexpr inline reference front() { return base::_first()->value(); }
+    constexpr inline const_reference front() const { return base::_first()->value(); }
+    constexpr inline reference back() { return base::_last()->value(); }
+    constexpr inline const_reference back() const { return base::_last()->value(); }
 
     /// Lookup
-private:
-    constexpr node_pointer _find_impl(value_type const & x);
-    constexpr node_const_pointer _find_impl(value_type const & x) const;
-    template <typename U> requires meta::is_transparent_compare<Compare>
-    constexpr auto _find_impl(U const & x) -> node_pointer;
-    template <typename U> requires meta::is_transparent_compare<Compare>
-    constexpr auto _find_impl(U const & x) const -> node_const_pointer;
-
-public:
     constexpr inline bool contains(value_type const & x) const;
     template <typename U> requires meta::is_transparent_compare<Compare>
     constexpr inline auto contains(U const & x) const -> bool;
@@ -154,42 +122,20 @@ public:
     constexpr auto find(U const & x) const -> const_iterator;
 
 private:
-    template <typename ...Args>
-    constexpr node_pointer _emplace(Args&&... args);
-
     constexpr void _balance_from(node_pointer ptr);
 
     constexpr void _right_rotation(node_pointer const v) noexcept;
     constexpr void _left_rotation(node_pointer const v) noexcept;
+
 public:
     template <typename ...Args>
     constexpr reference emplace(Args&&... args);
-
-public:
 
     constexpr inline void swap(avl_tree & other)
         noexcept(noexcept(std::allocator_traits<node_allocator>::is_always_equal::value))
     { base::swap(other); }
 
     constexpr inline void clear() noexcept { base::clear(); }
-
-private:
-    using _hold_ptr = std::unique_ptr<node, detail::_node_deallocator<node_allocator>>;
-
-    template <typename ...Args>
-    constexpr inline
-    static _hold_ptr _construct_node(node_allocator & alloc, Args &&... args)
-    {
-        auto ptr = node_allocator_traits::allocate(alloc, 1);
-        auto hold = _hold_ptr(ptr, detail::_node_deallocator(alloc));
-        node_allocator_traits::construct(alloc, hold.get());
-        ++hold.get_deleter().constructed;
-        node_allocator_traits::construct(alloc, std::addressof(hold->value()), std::forward<Args>(args)...);
-        ++hold.get_deleter().constructed;
-        return hold;
-    }
-
-
 
 }; // class avl_tree
 
@@ -322,9 +268,10 @@ template <typename ...Args>
 constexpr
 avl_tree<T, Compare, Alloc>::reference avl_tree<T, Compare, Alloc>::emplace(Args&&... args)
 {
-    auto _new_node = _emplace(std::forward<Args>(args)...);
+    auto & alloc = _node_alloc;
+    auto hold = base::_construct_node(alloc, std::forward<Args>(args)...);
+    auto _new_node = base::_emplace(std::move(hold));
     _balance_from(_new_node);
-    ++base::_size;
 
     return _new_node->value();
 }
@@ -426,127 +373,9 @@ void avl_tree<T, Compare, Alloc>::_balance_from(node_pointer ptr)
 }
 
 template <typename T, typename Compare, typename Alloc>
-template <typename ...Args>
-constexpr
-avl_tree<T, Compare, Alloc>::node_pointer avl_tree<T, Compare, Alloc>::_emplace(Args&&... args)
-{
-    auto & alloc = _node_alloc;
-    auto hold = _construct_node(alloc, std::forward<Args>(args)...);
-
-    if (empty()) {
-        hold->root = std::addressof(_end);
-        _end.left = _end.right = _end.root = hold.release();
-        return _end.root;
-    }
-
-    auto ptr = _end.root;
-    while (true) {
-        ++ptr->height;
-        if (_cmp(hold->value(), ptr->value())) {
-            if (ptr->left == nullptr) {
-                hold->root = ptr;
-                ptr->left = hold.release();
-                ptr = ptr->left;
-
-                if (ptr->root == _first()) { //Set the new front
-                    _first() = ptr;
-                }
-                return ptr;
-            }
-            ptr = ptr->left;
-        } else {
-            if (ptr->right == nullptr) {
-                hold->root = ptr;
-                ptr->right = hold.release();
-                ptr = ptr->right;
-                if (ptr->root == _last()) {
-                    _last() = ptr;
-                }
-                return ptr;
-            }
-            ptr = ptr->right;
-        }
-    }
-    __builtin_unreachable();
-}
-
-template <typename T, typename Compare, typename Alloc>
-constexpr auto avl_tree<T, Compare, Alloc>::_find_impl(value_type const & x)
-    -> node_pointer
-{
-    auto it = _root();
-    while (it != nullptr) {
-        if (_cmp(it->value(), x)) {
-            it = it->right;
-        } else if (_cmp(x, it->value())) {
-            it = it->left;
-        } else {
-            return it;
-        }
-    }
-    return nullptr;
-}
-
-template <typename T, typename Compare, typename Alloc>
-constexpr auto avl_tree<T, Compare, Alloc>::_find_impl(value_type const & x) const
-    -> node_const_pointer
-{
-    auto it = _root();
-    while (it != nullptr) {
-        if (_cmp(it->value(), x)) {
-            it = it->right;
-        } else if (_cmp(x, it->value())) {
-            it = it->left;
-        } else {
-            return it;
-        }
-    }
-    return nullptr;
-}
-
-template <typename T, typename Compare, typename Alloc>
-template <typename U>
-    requires meta::is_transparent_compare<Compare>
-constexpr auto avl_tree<T, Compare, Alloc>::_find_impl(U const & x)
-    -> node_pointer
-{
-    auto it = _root();
-    while (it != nullptr) {
-        if (_cmp(it->value(), x)) {
-            it = it->right;
-        } else if (_cmp(x, it->value())) {
-            it = it->left;
-        } else {
-            return it;
-        }
-    }
-    return nullptr;
-}
-
-template <typename T, typename Compare, typename Alloc>
-template <typename U>
-    requires meta::is_transparent_compare<Compare>
-constexpr auto avl_tree<T, Compare, Alloc>::_find_impl(U const & x) const
-    -> node_const_pointer
-{
-    auto it = _root();
-    while (it != nullptr) {
-        if (_cmp(it->value(), x)) {
-            it = it->right;
-        } else if (_cmp(x, it->value())) {
-            it = it->left;
-        } else {
-            return it;
-        }
-    }
-    return nullptr;
-}
-
-
-template <typename T, typename Compare, typename Alloc>
 constexpr inline bool avl_tree<T, Compare, Alloc>::contains(value_type const & x) const
 {
-    return _find_impl(x) != nullptr;
+    return base::contains(x);
 }
 
 template <typename T, typename Compare, typename Alloc>
@@ -554,23 +383,21 @@ template <typename U> requires meta::is_transparent_compare<Compare>
 constexpr inline auto avl_tree<T, Compare, Alloc>::contains(U const & x) const
     -> bool
 {
-    return _find_impl(x) != nullptr;
+    return base::contains(x);
 }
 
 template <typename T, typename Compare, typename Alloc>
-constexpr auto avl_tree<T, Compare, Alloc>::find(value_type const & x)
+constexpr inline auto avl_tree<T, Compare, Alloc>::find(value_type const & x)
     -> iterator
 {
-    auto found = _find_impl(x);
-    return found ? iterator{found} : end();
+    return base::find(x);
 }
 
 template <typename T, typename Compare, typename Alloc>
-constexpr auto avl_tree<T, Compare, Alloc>::find(value_type const & x) const
+constexpr inline auto avl_tree<T, Compare, Alloc>::find(value_type const & x) const
     -> const_iterator
 {
-    auto found = _find_impl(x);
-    return found ? const_iterator{found} : end();
+    return base::find(x);
 }
 
 template <typename T, typename Compare, typename Alloc>
@@ -578,8 +405,7 @@ template <typename U> requires meta::is_transparent_compare<Compare>
 constexpr auto avl_tree<T, Compare, Alloc>::find(U const & x)
     -> iterator
 {
-    auto found = _find_impl(x);
-    return _find_impl(x) ? iterator{found} : end();
+    return base::find(x);
 }
 
 template <typename T, typename Compare, typename Alloc>
@@ -587,8 +413,7 @@ template <typename U> requires meta::is_transparent_compare<Compare>
 constexpr auto avl_tree<T, Compare, Alloc>::find(U const & x) const
     -> const_iterator
 {
-    auto found = _find_impl(x);
-    return found ? iterator{found} : end();
+    return base::find(x);
 }
 
 template <typename T, typename Compare, typename Alloc>
