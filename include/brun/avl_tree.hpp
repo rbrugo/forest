@@ -25,7 +25,6 @@ protected:
     using node_const_pointer    = base::node_const_pointer;
     using compare_type          = Compare;
     using height_type           = std::int_fast8_t;
-    using node_handle           = base::node_handle;
 
 public:
     using value_type             = T;
@@ -42,6 +41,10 @@ public:
     using const_reverse_iterator = std::reverse_iterator<const_iterator>;
 
 protected:
+    using node_handle           = base::node_handle;
+    using _node_deallocator     = base::_node_deallocator;
+    using _hold_ptr             = base::_hold_ptr;
+
     using base::_end;
     using base::_node_alloc;
     using base::_size;
@@ -120,10 +123,10 @@ public:
     template <typename ...Args>
     constexpr reference emplace(Args&&... args);
 
-    // template <typename Cmp2>
-    // constexpr void merge(avl_tree<value_type, Cmp2, allocator_type> & source);
-    // template <typename Cmp2>
-    // constexpr void merge(avl_tree<value_type, Cmp2, allocator_type> && source);
+    template <typename Cmp2>
+    constexpr void merge(avl_tree<value_type, Cmp2, allocator_type> & source);
+    template <typename Cmp2>
+    constexpr void merge(avl_tree<value_type, Cmp2, allocator_type> && source);
 
     /// Lookup
     //constexpr auto count(value_type const & x) const -> size_type;
@@ -302,7 +305,7 @@ auto avl_tree<T, Compare, Alloc>::extract(iterator it)
     -> node_handle
 {
     auto replaced = base::_extract(it);
-    _balance_from(replaced);
+    if (replaced != nullptr) { _balance_from(replaced); }
     return node_handle{it._current, _node_alloc};
 }
 
@@ -367,6 +370,30 @@ auto avl_tree<T, Compare, Alloc>::emplace(Args&&... args)
     _balance_from(_new_node);
 
     return _new_node->value();
+}
+
+template <typename T, typename Compare, typename Alloc>
+template <typename Cmp2>
+constexpr
+void avl_tree<T, Compare, Alloc>::merge(avl_tree<value_type, Cmp2, allocator_type> & source)
+{
+    auto it = source.begin();
+    while (it != source.end()) {
+        auto tmp = it++;
+        insert(source.extract(tmp));
+    }
+}
+
+template <typename T, typename Compare, typename Alloc>
+template <typename Cmp2>
+constexpr
+void avl_tree<T, Compare, Alloc>::merge(avl_tree<value_type, Cmp2, allocator_type> && source)
+{
+    auto it = source.begin();
+    while (it != source.end()) {
+        auto tmp = it++;
+        insert(source.extract(tmp));
+    }
 }
 
 template <typename T, typename Compare, typename Alloc>
