@@ -22,6 +22,7 @@ class node_handle
 {
 public:
     template <typename, typename, typename> friend class binary_search_tree;
+    template <typename, typename, typename> friend class avl_tree;
     using value_type      = T;
     using reference       = value_type &;
     using const_reference = value_type const &;
