@@ -371,7 +371,6 @@ auto binary_search_tree<T, Compare, Alloc>::emplace(Args&&... args)
     return _emplace(std::move(_new_node))->value();
 }
 
-
 template <typename T, typename Compare, typename Alloc>
 template <typename Cmp2>
 constexpr
