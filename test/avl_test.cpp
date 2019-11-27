@@ -297,3 +297,35 @@ TEMPLATE_TEST_CASE("One can search for objects in an avl-tree", "[lookup]", int,
         }
     }
 }
+
+TEST_CASE("It is possible to extract and insert nodes, and merge trees", "[extract][insert][merge]")
+{
+    GIVEN("two bst A and B with some elements") {
+        auto a = avl_tree<int>{1, 5, 2, 1, 3};
+        auto b = avl_tree<int>{21, 0, 13, 8, 34};
+        THEN("is possible to extract an element from A and merge it to B") {
+            auto n1 = b.extract(34);
+            REQUIRE(b.back() == 21);
+            REQUIRE(n1.value() == 34);
+            auto n2 = b.extract(0);
+            REQUIRE(b.front() == 8);
+            REQUIRE(n2.value() == 0);
+            REQUIRE(n1.value() == 34);
+
+            a.insert(std::move(n1));
+            REQUIRE(a.back() == 34);
+
+            a.insert(std::move(n2));
+            REQUIRE(a.front() == 0);
+        }
+        THEN("is possible to merge the two containers") {
+            auto a2 = a;
+            auto b2 = b;
+            a2.merge(b2);
+            auto unified = std::multiset<int>(a.begin(), a.end()); unified.insert(b.begin(), b.end());
+
+            REQUIRE(std::equal(begin(unified), end(unified), begin(a2), end(a2)));
+            REQUIRE(b2.empty());
+        }
+    }
+}
