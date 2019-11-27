@@ -130,6 +130,7 @@ protected:
 
     using base::_set_end;
 
+    constexpr node_pointer _extract(iterator it);
 public:
     constexpr inline reference front() { return _first()->value(); }
     constexpr inline const_reference front() const { return _first()->value(); }
@@ -139,8 +140,8 @@ public:
     /// Modifiers
     constexpr inline void clear() noexcept { base::clear(); }
 
-    constexpr node_handle extract(iterator it);
-    constexpr node_handle extract(value_type const & value);
+    constexpr inline node_handle extract(iterator it);
+    constexpr inline node_handle extract(value_type const & value);
 
 protected:
     constexpr node_pointer _emplace(_hold_ptr && hold);
@@ -212,7 +213,7 @@ protected:
     static auto is_left_child(node const * root, node const * child) -> bool;
 
     constexpr
-    static void _unlink_join(node * unlink) noexcept;
+    static node_pointer _unlink_join(node_pointer unlink) noexcept;
 
     template <typename ...Args>
     constexpr inline
@@ -600,7 +601,8 @@ constexpr auto binary_search_tree<T, Compare, Alloc>::is_left_child(node const *
 }
 
 template <typename T, typename Compare, typename Alloc>
-constexpr void binary_search_tree<T, Compare, Alloc>::_unlink_join(node * unlink) noexcept
+constexpr auto binary_search_tree<T, Compare, Alloc>::_unlink_join(node_pointer unlink) noexcept
+    -> node_pointer
 {
     auto const root  = unlink->root;
     auto const left  = unlink->left;
@@ -613,7 +615,7 @@ constexpr void binary_search_tree<T, Compare, Alloc>::_unlink_join(node * unlink
     if (not has_left and not has_right) { // no children
         (is_left ? root->left : root->right) = nullptr;
         unlink->root = nullptr;
-        return;
+        return nullptr;
     }
     if (has_left != has_right) { // one child
         auto son = has_left ? left : right;
@@ -621,7 +623,7 @@ constexpr void binary_search_tree<T, Compare, Alloc>::_unlink_join(node * unlink
         son->root = root;
 
         unlink->left = unlink->right = unlink->root = nullptr;
-        return;
+        return nullptr;
     }
     // two children
     auto repl = std::prev(iterator{unlink})._current;
@@ -647,11 +649,14 @@ constexpr void binary_search_tree<T, Compare, Alloc>::_unlink_join(node * unlink
     exchange(unlink, repl);
     unlink->left = unlink->right = unlink->root = nullptr;
     unlink->height = 0;
+
+    return repl;
 }
 
 template <typename T, typename Compare, typename Alloc>
-constexpr auto binary_search_tree<T, Compare, Alloc>::extract(iterator it)
-    -> node_handle
+constexpr auto binary_search_tree<T, Compare, Alloc>::_extract(iterator it)
+    /* -> node_handle */
+    -> node_pointer
 {
     auto new_anchor = _end;
     if (size() > 1) {
@@ -679,15 +684,26 @@ constexpr auto binary_search_tree<T, Compare, Alloc>::extract(iterator it)
         new_anchor.left = new_anchor.right = new_anchor.root = std::addressof(_end);
     }
     // it may not be a leaf, in that case I need to swap it with an adiacent leaf value
-    _unlink_join(it._current);
+    auto repl = _unlink_join(it._current);
 
     _end = new_anchor;
     --_size;
+    /* return node_handle{it._current, _node_alloc}; */
+    return repl;
+}
+
+template <typename T, typename Compare, typename Alloc>
+constexpr inline
+auto binary_search_tree<T, Compare, Alloc>::extract(iterator it)
+    -> node_handle
+{
+    _extract(std::move(it));
     return node_handle{it._current, _node_alloc};
 }
 
 template <typename T, typename Compare, typename Alloc>
-constexpr auto binary_search_tree<T, Compare, Alloc>::extract(value_type const & value)
+constexpr inline
+auto binary_search_tree<T, Compare, Alloc>::extract(value_type const & value)
     -> node_handle
 {
     if (auto it = find(value); it != end()) {
