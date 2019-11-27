@@ -111,8 +111,8 @@ public:
 
     /// Modifiers
     constexpr inline void clear() noexcept { base::clear(); }
-    // constexpr node_handle extract(iterator it);
-    // constexpr node_handle extract(value_type const & value);
+    constexpr inline node_handle extract(iterator it);
+    constexpr inline node_handle extract(value_type const & value);
     constexpr inline iterator insert(value_type const & value);
     constexpr inline iterator insert(value_type && value);
     constexpr inline iterator insert(node_handle && n);
@@ -297,12 +297,36 @@ void avl_tree<T, Compare, Alloc>::assign(Iterator f, Iterator l)
 }
 
 template <typename T, typename Compare, typename Alloc>
+constexpr inline
+auto avl_tree<T, Compare, Alloc>::extract(iterator it)
+    -> node_handle
+{
+    auto replaced = base::_extract(it);
+    _balance_from(replaced);
+    return node_handle{it._current, _node_alloc};
+}
+
+template <typename T, typename Compare, typename Alloc>
+constexpr inline
+auto avl_tree<T, Compare, Alloc>::extract(value_type const & value)
+    -> node_handle
+{
+    if (auto it = find(value); it != end()) {
+        return extract(std::move(it));
+    }
+    return {};
+}
+
+template <typename T, typename Compare, typename Alloc>
 constexpr
 auto avl_tree<T, Compare, Alloc>::insert(value_type const & value)
     -> iterator
 {
-    auto _new_node = _construct_node(_node_alloc, value);
-    return iterator{_emplace(std::move(_new_node))};
+    auto _hold = base::_construct_node(_node_alloc, value);
+    auto _new_node = base::_emplace(std::move(_hold));
+    _balance_from(_new_node);
+
+    return iterator{_new_node};
 }
 
 template <typename T, typename Compare, typename Alloc>
@@ -310,8 +334,11 @@ constexpr
 auto avl_tree<T, Compare, Alloc>::insert(value_type && value)
     -> iterator
 {
-    auto _new_node = base::_construct_node(_node_alloc, std::move(value));
-    return iterator{emplace(std::move(_new_node))};
+    auto _hold = base::_construct_node(_node_alloc, std::move(value));
+    auto _new_node = base::_emplace(std::move(_hold));
+    _balance_from(_new_node);
+
+    return iterator{_new_node};
 }
 
 template <typename T, typename Compare, typename Alloc>
