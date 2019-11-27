@@ -25,6 +25,7 @@ protected:
     using node_const_pointer    = base::node_const_pointer;
     using compare_type          = Compare;
     using height_type           = std::int_fast8_t;
+    using node_handle           = base::node_handle;
 
 public:
     using value_type             = T;
@@ -40,7 +41,7 @@ public:
     using reverse_iterator       = std::reverse_iterator<iterator>;
     using const_reverse_iterator = std::reverse_iterator<const_iterator>;
 
-private:
+protected:
     using base::_end;
     using base::_node_alloc;
     using base::_size;
@@ -79,15 +80,13 @@ public:
     constexpr inline
     allocator_type get_allocator() const noexcept { return base::get_allocator(); }
 
+    /// Capacity
     constexpr inline
     size_type size() const noexcept { return base::_size; }
-
     [[nodiscard]] constexpr inline
     bool empty() const noexcept { return base::empty(); }
-
     constexpr inline
-    size_type max_size() const noexcept
-    { return base::max_size(); }
+    size_type max_size() const noexcept { return base::max_size(); }
 
     /// Iterators
     constexpr inline iterator begin() noexcept { return iterator{base::_first()}; }
@@ -110,7 +109,26 @@ public:
     constexpr inline reference back() { return base::_last()->value(); }
     constexpr inline const_reference back() const { return base::_last()->value(); }
 
+    /// Modifiers
+    constexpr inline void clear() noexcept { base::clear(); }
+    // constexpr node_handle extract(iterator it);
+    // constexpr node_handle extract(value_type const & value);
+    constexpr inline iterator insert(value_type const & value);
+    constexpr inline iterator insert(value_type && value);
+    constexpr inline iterator insert(node_handle && n);
+
+    template <typename ...Args>
+    constexpr reference emplace(Args&&... args);
+
+    // template <typename Cmp2>
+    // constexpr void merge(avl_tree<value_type, Cmp2, allocator_type> & source);
+    // template <typename Cmp2>
+    // constexpr void merge(avl_tree<value_type, Cmp2, allocator_type> && source);
+
     /// Lookup
+    //constexpr auto count(value_type const & x) const -> size_type;
+    //template <typename K> requires meta::is_transparent_compare<Compare>
+    //constexpr auto count(K const & x) const -> size_type;
     constexpr inline bool contains(value_type const & x) const;
     template <typename U> requires meta::is_transparent_compare<Compare>
     constexpr inline auto contains(U const & x) const -> bool;
@@ -120,6 +138,26 @@ public:
     constexpr auto find(U const & x) -> iterator;
     template <typename U> requires meta::is_transparent_compare<Compare>
     constexpr auto find(U const & x) const -> const_iterator;
+    //constexpr pair<iterator, iterator> equal_range(value_type const & x);
+    //constexpr pair<const_iterator, const_iterator> equal_range(value_type const & x) const;
+    //template <typename U> requires meta::is_transparent_compare<Compare>
+    //constexpr auto equal_range(U const & x) -> pair<iterator, iterator>
+    //template <typename U> requires meta::is_transparent_compare<Compare>
+    //constexpr auto equal_range(U const & x) const -> pair<const_iterator, const_iterator>
+
+    //constexpr auto lower_bound(value_type const & x) -> iterator;
+    //constexpr auto lower_bound(value_type const & x) const -> const iterator;
+    //template <typename U> requires meta::is_transparent_compare<Compare>
+    //constexpr auto lower_bound(U const & x) -> iterator;
+    //template <typename U> requires meta::is_transparent_compare<Compare>
+    //constexpr auto lower_bound(U const & x) const -> const iterator;
+
+    //constexpr auto upper_bound(value_type const & x) -> iterator;
+    //constexpr auto upper_bound(value_type const & x) const -> const iterator;
+    //template <typename U> requires meta::is_transparent_compare<Compare>
+    //constexpr auto upper_bound(U const & x) -> iterator;
+    //template <typename U> requires meta::is_transparent_compare<Compare>
+    //constexpr auto upper_bound(U const & x) const -> const iterator;
 
 private:
     constexpr void _balance_from(node_pointer ptr);
@@ -128,14 +166,10 @@ private:
     constexpr void _left_rotation(node_pointer const v) noexcept;
 
 public:
-    template <typename ...Args>
-    constexpr reference emplace(Args&&... args);
 
     constexpr inline void swap(avl_tree & other)
         noexcept(noexcept(std::allocator_traits<node_allocator>::is_always_equal::value))
     { base::swap(other); }
-
-    constexpr inline void clear() noexcept { base::clear(); }
 
 }; // class avl_tree
 
@@ -262,11 +296,43 @@ void avl_tree<T, Compare, Alloc>::assign(Iterator f, Iterator l)
     }
 }
 
+template <typename T, typename Compare, typename Alloc>
+constexpr
+auto avl_tree<T, Compare, Alloc>::insert(value_type const & value)
+    -> iterator
+{
+    auto _new_node = _construct_node(_node_alloc, value);
+    return iterator{_emplace(std::move(_new_node))};
+}
+
+template <typename T, typename Compare, typename Alloc>
+constexpr
+auto avl_tree<T, Compare, Alloc>::insert(value_type && value)
+    -> iterator
+{
+    auto _new_node = base::_construct_node(_node_alloc, std::move(value));
+    return iterator{emplace(std::move(_new_node))};
+}
+
+template <typename T, typename Compare, typename Alloc>
+constexpr inline
+auto avl_tree<T, Compare, Alloc>::insert(node_handle && n)
+    -> iterator
+{
+    auto hold = _hold_ptr(n._storage, _node_deallocator(_node_alloc));
+    hold.get_deleter().constructed = 2;
+    n._storage = nullptr;
+    auto _new_node = base::_emplace(std::move(hold));
+    _balance_from(_new_node);
+
+    return iterator{_new_node};
+}
 
 template <typename T, typename Compare, typename Alloc>
 template <typename ...Args>
 constexpr
-avl_tree<T, Compare, Alloc>::reference avl_tree<T, Compare, Alloc>::emplace(Args&&... args)
+auto avl_tree<T, Compare, Alloc>::emplace(Args&&... args)
+    -> reference
 {
     auto & alloc = _node_alloc;
     auto hold = base::_construct_node(alloc, std::forward<Args>(args)...);
