@@ -144,6 +144,7 @@ public:
     constexpr inline node_handle extract(value_type const & value);
 
 protected:
+    constexpr node_pointer _emplace(const_iterator it, _hold_ptr && hold);
     constexpr node_pointer _emplace(_hold_ptr && hold);
 
 public:
@@ -426,7 +427,7 @@ auto binary_search_tree<T, Compare, Alloc>::insert(node_handle && n)
 
 template <typename T, typename Compare, typename Alloc>
 constexpr
-auto binary_search_tree<T, Compare, Alloc>::_emplace(_hold_ptr && hold)
+auto binary_search_tree<T, Compare, Alloc>::_emplace(const_iterator hint, _hold_ptr && hold)
     -> node_pointer
 {
     if (empty()) {
@@ -436,7 +437,26 @@ auto binary_search_tree<T, Compare, Alloc>::_emplace(_hold_ptr && hold)
         return _end.root;
     }
 
-    auto ptr = _end.root;
+    auto ptr = const_cast<node_pointer>(hint._current); // sigh
+
+    auto const root = _end.root;
+    if (ptr->value() < root->value() and root->value() < hold->value())
+    {
+        ptr = root;
+    } else if (root->value() < ptr->value() and hold->value() < root->value()) {
+        ptr = root;
+    }
+
+    if (not _cmp(ptr->value(), hold->value())) {
+        while (ptr != _end.root and not _cmp(ptr->value(), hold->value())) {
+            ptr = ptr->root;
+        }
+    }  else {
+        while (ptr != _end.root and not _cmp(hold->value(), ptr->value())) {
+            ptr = ptr->root;
+        }
+    }
+
     while (true) {
         ++ptr->height;
         if (_cmp(hold->value(), ptr->value())) {
@@ -467,6 +487,14 @@ auto binary_search_tree<T, Compare, Alloc>::_emplace(_hold_ptr && hold)
         }
     }
     __builtin_unreachable();
+}
+
+template <typename T, typename Compare, typename Alloc>
+constexpr inline
+auto binary_search_tree<T, Compare, Alloc>::_emplace(_hold_ptr && hold)
+    -> node_pointer
+{
+    return _emplace(const_iterator{_end.root}, std::move(hold));
 }
 
 
@@ -654,7 +682,6 @@ constexpr auto binary_search_tree<T, Compare, Alloc>::_unlink_join(node_pointer 
 
 template <typename T, typename Compare, typename Alloc>
 constexpr auto binary_search_tree<T, Compare, Alloc>::_extract(iterator it)
-    /* -> node_handle */
     -> node_pointer
 {
     auto new_anchor = _end;
@@ -687,7 +714,6 @@ constexpr auto binary_search_tree<T, Compare, Alloc>::_extract(iterator it)
 
     _end = new_anchor;
     --_size;
-    /* return node_handle{it._current, _node_alloc}; */
     return repl;
 }
 

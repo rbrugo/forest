@@ -119,6 +119,7 @@ public:
     constexpr inline iterator insert(value_type const & value);
     constexpr inline iterator insert(value_type && value);
     constexpr inline iterator insert(node_handle && n);
+    constexpr inline iterator insert(const_iterator hint, node_handle && n);
 
     template <typename ...Args>
     constexpr reference emplace(Args&&... args);
@@ -359,6 +360,20 @@ auto avl_tree<T, Compare, Alloc>::insert(node_handle && n)
 }
 
 template <typename T, typename Compare, typename Alloc>
+constexpr inline
+auto avl_tree<T, Compare, Alloc>::insert(const_iterator it, node_handle && n)
+    -> iterator
+{
+    auto hold = _hold_ptr(n._storage, _node_deallocator(_node_alloc));
+    hold.get_deleter().constructed = 2;
+    n._storage = nullptr;
+    auto _new_node = base::_emplace(it, std::move(hold));
+    _balance_from(_new_node);
+
+    return iterator{_new_node};
+}
+
+template <typename T, typename Compare, typename Alloc>
 template <typename ...Args>
 constexpr
 auto avl_tree<T, Compare, Alloc>::emplace(Args&&... args)
@@ -378,9 +393,11 @@ constexpr
 void avl_tree<T, Compare, Alloc>::merge(avl_tree<value_type, Cmp2, allocator_type> & source)
 {
     auto it = source.begin();
+    auto tmp = it++;
+    auto hint = insert(source.extract(tmp));
     while (it != source.end()) {
-        auto tmp = it++;
-        insert(source.extract(tmp));
+        tmp = it++;
+        hint = insert(hint, source.extract(tmp));
     }
 }
 

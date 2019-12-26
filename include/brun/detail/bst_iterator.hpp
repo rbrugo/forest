@@ -168,9 +168,7 @@ public:
 
     friend constexpr inline
     auto depth(_bst_iterator<T> const & it) noexcept
-    {
-        return _height(it._current);
-    }
+    { return _height(it._current); }
 
 }; // struct _bst_iterator
 
@@ -202,6 +200,9 @@ private:
 public:
     constexpr inline
     _bst_const_iterator() noexcept = default;
+
+    constexpr inline
+    _bst_const_iterator(_bst_iterator<T> const & it) : _current{it._current} { }
 
     constexpr inline
     reference operator*() const noexcept
@@ -323,14 +324,12 @@ public:
     template <typename U>
     constexpr inline
     bool operator!=(_bst_iterator<U> const & rhs) const noexcept
-    { return _current != rhs.current; }
+    { return _current != rhs._current; }
 
 
     friend constexpr inline
     auto depth(_bst_const_iterator<T> const & it) noexcept
-    {
-        return _height(it._current);
-    }
+    { return _height(it._current); }
 }; // struct _bst_const_iterator
 
 template <typename T, typename U>

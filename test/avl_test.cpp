@@ -21,7 +21,7 @@ struct foo
     foo(int & a) : n{a}, x{&a} {}
     foo(int a, int & y) : n{a}, x{&y} {}
 
-    bool operator<(foo other) { return n < other.n; }
+    bool operator<(foo const & other) const { return n < other.n; }
 }; // struct foo
 
 struct ints
