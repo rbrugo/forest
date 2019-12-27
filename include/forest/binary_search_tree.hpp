@@ -16,7 +16,7 @@
 
 #include "node_handle.hpp"
 
-namespace brun
+namespace forest
 {
 
 template <class T, class Compare = std::less<>, class Alloc = std::allocator<T>>
@@ -47,7 +47,7 @@ public:
     using node_type              = typename base::node_type;
 
 protected:
-    using node_handle           = brun::node_handle<value_type, height_type, allocator_type>;
+    using node_handle           = forest::node_handle<value_type, height_type, allocator_type>;
     using _node_deallocator     = detail::_node_deallocator<node, node_allocator>;
     using _hold_ptr             = std::unique_ptr<node, _node_deallocator>;
 
@@ -903,7 +903,7 @@ auto binary_search_tree<T, Compare, Alloc>::extract(value_type const & value)
     return {};
 }
 
-} // namespace brun
+} // namespace forest
 
 #endif /* BINARY_SEARCH_TREE_HPP */
 

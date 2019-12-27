@@ -11,7 +11,7 @@
 #include <cmath>    //std::max
 #include <new>
 
-namespace brun :: detail
+namespace forest :: detail
 {
 
 template <class T, typename Int>
@@ -61,7 +61,7 @@ template <class T, typename Int>
     ) + 1;
 }
 
-} // namespace brun :: detail
+} // namespace forest :: detail
 
 #endif /* DETAIL_NODE_HPP */
 

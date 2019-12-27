@@ -8,9 +8,9 @@
 #define CATCH_CONFIG_MAIN
 
 #include "catch2/catch.hpp"
-#include "brun/binary_search_tree.hpp"
+#include "forest/binary_search_tree.hpp"
 
-using brun::binary_search_tree;
+using forest::binary_search_tree;
 
 struct foo
 {

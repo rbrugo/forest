@@ -8,9 +8,9 @@
 #define CATCH_CONFIG_MAIN
 
 #include "catch2/catch.hpp"
-#include "brun/avl_tree.hpp"
+#include "forest/avl_tree.hpp"
 
-using brun::avl_tree;
+using forest::avl_tree;
 
 struct foo
 {

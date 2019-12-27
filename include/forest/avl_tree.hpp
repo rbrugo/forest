@@ -10,7 +10,7 @@
 
 #include "binary_search_tree.hpp"
 
-namespace brun
+namespace forest
 {
 
 template <class T, class Compare = std::less<>, class Alloc = std::allocator<T>>
@@ -625,15 +625,15 @@ void swap(avl_tree<T, Compare, Alloc> & lhs, avl_tree<T, Compare, Alloc> & rhs)
 { lhs.swap(rhs); }
 
 
-} // namespace brun
+} // namespace forest
 
 namespace std
 {
 template <typename T, typename Compare, typename Alloc>
 constexpr inline
-void std::swap(brun::avl_tree<T, Compare, Alloc> & lhs, brun::avl_tree<T, Compare, Alloc> & rhs)
-    noexcept(noexcept(brun::swap(lhs, rhs)))
-{ brun::swap(lhs, rhs); }
+void std::swap(forest::avl_tree<T, Compare, Alloc> & lhs, forest::avl_tree<T, Compare, Alloc> & rhs)
+    noexcept(noexcept(forest::swap(lhs, rhs)))
+{ forest::swap(lhs, rhs); }
 } // namespace std
 
 

@@ -14,7 +14,7 @@
 #include "detail/node.hpp"
 #include "detail/utils.hpp"
 
-namespace brun
+namespace forest
 {
 
 template <typename T, typename Int, typename Alloc>
@@ -116,7 +116,7 @@ void swap(node_handle<T, Int, Alloc> & f, node_handle<T, Int, Alloc> & s) noexce
     f.swap(s);
 }
 
-} // namespace brun
+} // namespace forest
 
 #endif /* NODE_HPP */
 

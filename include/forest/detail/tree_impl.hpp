@@ -12,7 +12,7 @@
 
 #include "node.hpp"
 
-namespace brun :: detail
+namespace forest :: detail
 {
 
 template <typename T, typename Int, typename Alloc = std::allocator<T>>
@@ -151,7 +151,7 @@ void _tree_impl<T, Int, Alloc>::swap(_tree_impl & other)
     }
 }
 
-} // namespace brun :: detail
+} // namespace forest :: detail
 
 #endif /* TREE_IMPL_HPP */
 

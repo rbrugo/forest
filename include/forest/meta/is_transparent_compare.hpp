@@ -8,11 +8,11 @@
 #ifndef IS_TRANSPARENT_COMPARE_HPP
 #define IS_TRANSPARENT_COMPARE_HPP
 
-namespace brun :: meta
+namespace forest :: meta
 {
 template <typename Compare>
 concept is_transparent_compare = requires () { typename Compare::is_transparent; };
-} // namespace brun :: meta
+} // namespace forest :: meta
 
 #endif /* IS_TRANSPARENT_COMPARE_HPP */
 

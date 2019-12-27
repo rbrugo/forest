@@ -10,15 +10,15 @@
 
 #include <cstdint> //std::int_fast8_t, std::ptrdiff_t
 
-#include "node.hpp" //brun::node
+#include "node.hpp" //forest::node
 
-namespace brun
+namespace forest
 {
 template <class, class, class> class avl_tree;
 template <class, class, class> class binary_search_tree;
-} // namespace brun
+} // namespace forest
 
-namespace brun :: detail
+namespace forest :: detail
 {
 
 template <typename T> struct _bst_iterator;
@@ -28,8 +28,8 @@ template <typename T>
 struct _bst_iterator
 {
 private:
-    template <class, class, class> friend class brun::binary_search_tree;
-    template <class, class, class> friend class brun::avl_tree;
+    template <class, class, class> friend class forest::binary_search_tree;
+    template <class, class, class> friend class forest::avl_tree;
     template <class> friend class _bst_const_iterator;
 
     using node_type         = node<T, std::int_fast8_t>;
@@ -176,8 +176,8 @@ template <typename T>
 struct _bst_const_iterator
 {
 private:
-    template <class, class, class> friend class brun::binary_search_tree;
-    template <class, class, class> friend class brun::avl_tree;
+    template <class, class, class> friend class forest::binary_search_tree;
+    template <class, class, class> friend class forest::avl_tree;
 
     using node_type         = node<T, std::int_fast8_t>;
     using node_pointer      = node_type const *;
@@ -342,7 +342,7 @@ constexpr inline
 bool operator==(_bst_iterator<U> const & lhs, _bst_const_iterator<T> const & rhs) noexcept
 { return rhs == lhs; }
 
-} // namespace brun :: detail
+} // namespace forest :: detail
 
 #endif /* BST_ITERATOR_HPP */
 

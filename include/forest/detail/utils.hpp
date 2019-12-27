@@ -10,7 +10,7 @@
 
 #include <iterator>
 
-namespace brun :: detail
+namespace forest :: detail
 {
 
 template <class Iterator>
@@ -52,7 +52,7 @@ struct _node_deallocator
     }
 }; // struct _node_deallocator
 
-} // namespace brun :: detail
+} // namespace forest :: detail
 
 #endif /* UTILS_HPP */
 
