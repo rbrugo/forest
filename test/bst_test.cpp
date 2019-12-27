@@ -149,8 +149,8 @@ TEST_CASE("One can emplace objects into a bst", "[emplace]")
     REQUIRE((tree.front().n == -1 && tree.front().x == nullptr));
 }
 
-template <typename T>
-auto select([[maybe_unused]] int x, [[maybe_unused]] std::string y)
+template <typename T, typename Int, typename String>
+auto select([[maybe_unused]] Int x, [[maybe_unused]] String y)
 {
     if constexpr (std::is_same_v<T, int>) {
         return x;
@@ -161,6 +161,8 @@ auto select([[maybe_unused]] int x, [[maybe_unused]] std::string y)
 
 TEMPLATE_TEST_CASE("One can search for objects in a bst", "[lookup]", int, std::string)
 {
+    using std::literals::operator""s;
+    using std::literals::operator""sv;
     auto tree = binary_search_tree<TestType>{};
     if constexpr (std::is_same_v<TestType, int>) {
         tree.assign({0, 1, 2, 3, 5, 8});
@@ -171,14 +173,21 @@ TEMPLATE_TEST_CASE("One can search for objects in a bst", "[lookup]", int, std::
     auto select = [](auto a, auto b) { return ::select<TestType>(a, std::move(b)); };
     GIVEN("a bst with some elements") {
         THEN("using `.contains(X)` must return `true` if `X` is in the container") {
-            REQUIRE(tree.contains(select(0, "Il")));
-            REQUIRE(tree.contains(select(1, "lonfo")));
-            REQUIRE(tree.contains(select(2, "non")));
-            REQUIRE(tree.contains(select(3, "vaterca")));
-            REQUIRE(tree.contains(select(5, "ne")));
-            REQUIRE(tree.contains(select(8, "gluisce")));
-            REQUIRE(!tree.contains(select(42, "barigatta")));
+            REQUIRE(tree.contains(select(0, "Il"s)));
+            REQUIRE(tree.contains(select(1, "lonfo"s)));
+            REQUIRE(tree.contains(select(2, "non"s)));
+            REQUIRE(tree.contains(select(3, "vaterca"s)));
+            REQUIRE(tree.contains(select(5, "ne"s)));
+            REQUIRE(tree.contains(select(8, "gluisce"s)));
+            REQUIRE(!tree.contains(select(42, "barigatta"s)));
             REQUIRE(!tree.contains(select(-7, "")));
+
+            REQUIRE(tree.contains(select(0., "Il"sv)));
+            REQUIRE(tree.contains(select(1., "lonfo"sv)));
+            REQUIRE(tree.contains(select(2., "non"sv)));
+            REQUIRE(tree.contains(select(3., "vaterca"sv)));
+            REQUIRE(tree.contains(select(5., "ne"sv)));
+            REQUIRE(tree.contains(select(8., "gluisce"sv)));
         }
         THEN("using `.find(X)` must return an iterator to the elem `X`, or `end()` if `X` is not in the tree") {
             auto const end = tree.cend();
@@ -191,12 +200,27 @@ TEMPLATE_TEST_CASE("One can search for objects in a bst", "[lookup]", int, std::
             REQUIRE(tree.find(select(8, "vaterca")) == it);
             REQUIRE(tree.find(select(42, "barigatta")) == end);
             REQUIRE(tree.find(select(-7, "")) == end);
+
+            it = tree.begin();
+            REQUIRE(tree.find(select(0., "Il"sv)) == it++);
+            REQUIRE(tree.find(select(1., "gluisce"sv)) == it++);
+            REQUIRE(tree.find(select(2., "lonfo"sv)) == it++);
+            REQUIRE(tree.find(select(3., "ne"sv)) == it++);
+            REQUIRE(tree.find(select(5., "non"sv)) == it++);
+            REQUIRE(tree.find(select(8., "vaterca"sv)) == it);
+            REQUIRE(tree.find(select(42., "barigatta"sv)) == end);
+            REQUIRE(tree.find(select(-7., ""sv)) == end);
         }
         THEN("using `.lower_bound(X)` must return the first element which is not 'less' than X") {
             REQUIRE(tree.lower_bound(select(0, "Il")) == tree.begin());
             REQUIRE(tree.lower_bound(select(4, "no")) == tree.find(select(5, "non")));
             REQUIRE(tree.lower_bound(select(7, "vaterc")) == tree.find(select(8, "vaterca")));
             REQUIRE(tree.lower_bound(select(9, "zucchia")) == tree.end());
+
+            REQUIRE(tree.lower_bound(select(0., "Il"sv)) == tree.begin());
+            REQUIRE(tree.lower_bound(select(4., "no"sv)) == tree.find(select(5, "non")));
+            REQUIRE(tree.lower_bound(select(7., "vaterc"sv)) == tree.find(select(8, "vaterca")));
+            REQUIRE(tree.lower_bound(select(9., "zucchia"sv)) == tree.end());
         }
     }
 }
