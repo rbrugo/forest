@@ -624,9 +624,6 @@ template <typename T, typename Compare, typename Alloc>
 constexpr auto binary_search_tree<T, Compare, Alloc>::lower_bound(value_type const & x)
     -> iterator
 {
-    //TODO
-    //Returns an iterator pointing to the first element that is not less than value, or end() if no
-    // such element is found.
     auto it = _root();
     auto last = it;
     while (it != nullptr) {
@@ -637,24 +634,16 @@ constexpr auto binary_search_tree<T, Compare, Alloc>::lower_bound(value_type con
             last = it;
             it = it->left;
         } else {
-            auto tmp = it;
-            while (*--it == *tmp) { tmp = it; }
+            auto current = iterator{it};
+            auto tmp = current;
+            auto const bg = begin();
+            while (current != bg and *--current == *tmp) { tmp = current; }
             return tmp;
         }
     }
-    if (last == _last()) {
-        return end();
-    }
     auto res = iterator{last};
     if (_cmp(*res, x)) {
-        /* while (_cmp(*res, x)) { */
-            --res;
-        /* } */
-    } else {
-        /* auto const end = end(); */
-        /* while (res != end and _cmp(*res, x)) { */
         ++res;
-        /* } */
     }
     return res;
 }
