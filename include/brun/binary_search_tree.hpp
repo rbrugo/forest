@@ -169,12 +169,16 @@ protected:
     template <typename U> requires meta::is_transparent_compare<Compare>
     constexpr auto _find_impl(U const & x) const -> node_const_pointer;
     template <typename Self, typename U>
-    static constexpr auto _lower_bound_impl(Self && self, U const & x); //-> iterator;
+    static constexpr auto _lower_bound_impl(Self && self, U const & x);
+    template <typename Self, typename U>
+    static constexpr auto _upper_bound_impl(Self && self, U const & x);
+    template <typename Self, typename U>
+    static constexpr auto _equal_range_impl(Self && self, U const & x);
 
 public:
-    //constexpr auto count(value_type const & x) const -> size_type;
-    //template <typename K> requires meta::is_transparent_compare<Compare>
-    //constexpr auto count(K const & x) const -> size_type;
+    constexpr auto count(value_type const & x) const -> difference_type;
+    template <typename K> requires meta::is_transparent_compare<Compare>
+    constexpr auto count(K const & x) const -> difference_type;
     constexpr iterator find(value_type const & x);
     constexpr const_iterator find(value_type const & x) const;
     template <typename U> requires meta::is_transparent_compare<Compare>
@@ -184,12 +188,12 @@ public:
     constexpr inline bool contains(value_type const & x) const;
     template <typename U> requires meta::is_transparent_compare<Compare>
     constexpr inline auto contains(U const & x) const -> bool;
-    //constexpr pair<iterator, iterator> equal_range(value_type const & x);
-    //constexpr pair<const_iterator, const_iterator> equal_range(value_type const & x) const;
-    //template <typename U> requires meta::is_transparent_compare<Compare>
-    //constexpr auto equal_range(U const & x) -> pair<iterator, iterator>
-    //template <typename U> requires meta::is_transparent_compare<Compare>
-    //constexpr auto equal_range(U const & x) const -> pair<const_iterator, const_iterator>
+    constexpr auto equal_range(value_type const & x) -> std::pair<iterator, iterator>;
+    constexpr auto equal_range(value_type const & x) const -> std::pair<const_iterator, const_iterator>;
+    template <typename U> requires meta::is_transparent_compare<Compare>
+    constexpr auto equal_range(U const & x) -> std::pair<iterator, iterator>;
+    template <typename U> requires meta::is_transparent_compare<Compare>
+    constexpr auto equal_range(U const & x) const -> std::pair<const_iterator, const_iterator>;
 
     constexpr inline auto lower_bound(value_type const & x) -> iterator;
     constexpr inline auto lower_bound(value_type const & x) const -> const_iterator;
@@ -198,12 +202,12 @@ public:
     template <typename U> requires meta::is_transparent_compare<Compare>
     constexpr auto lower_bound(U const & x) const -> const_iterator;
 
-    //constexpr auto upper_bound(value_type const & x) -> iterator;
-    //constexpr auto upper_bound(value_type const & x) const -> const iterator;
-    //template <typename U> requires meta::is_transparent_compare<Compare>
-    //constexpr auto upper_bound(U const & x) -> iterator;
-    //template <typename U> requires meta::is_transparent_compare<Compare>
-    //constexpr auto upper_bound(U const & x) const -> const iterator;
+    constexpr inline auto upper_bound(value_type const & x) -> iterator;
+    constexpr inline auto upper_bound(value_type const & x) const -> const_iterator;
+    template <typename U> requires meta::is_transparent_compare<Compare>
+    constexpr auto upper_bound(U const & x) -> iterator;
+    template <typename U> requires meta::is_transparent_compare<Compare>
+    constexpr auto upper_bound(U const & x) const -> const_iterator;
 
 public:
 
@@ -673,6 +677,116 @@ template <typename U>
 constexpr inline auto binary_search_tree<T, Compare, Alloc>::lower_bound(U const & x) const
     -> const_iterator
 { return _lower_bound_impl(*this, x); }
+
+template <typename T, typename Compare, typename Alloc>
+template <typename Self, typename U>
+constexpr auto binary_search_tree<T, Compare, Alloc>::_upper_bound_impl(Self && self, U const & x)
+{
+    auto it = self._root();
+    auto last = it;
+    while (it != nullptr) {
+        if (self._cmp(it->value(), x)) {
+            last = it;
+            it = it->right;
+        } else if (self._cmp(x, it->value())) {
+            last = it;
+            it = it->left;
+        } else {
+            return std::find_if(iterator{it}, self.end(), [&x, &self](auto && v) { return self._cmp(x, v); });
+        }
+    }
+    auto res = iterator{last};
+    return std::find_if(res, self.end(), [&x, &self](auto && v) { return self._cmp(x, v); });
+}
+
+template <typename T, typename Compare, typename Alloc>
+constexpr inline auto binary_search_tree<T, Compare, Alloc>::upper_bound(value_type const & x)
+    -> iterator
+{ return _upper_bound_impl(*this, x); }
+
+template <typename T, typename Compare, typename Alloc>
+constexpr inline auto binary_search_tree<T, Compare, Alloc>::upper_bound(value_type const & x) const
+    -> const_iterator
+{ return _upper_bound_impl(*this, x); }
+
+template <typename T, typename Compare, typename Alloc>
+template <typename U> requires meta::is_transparent_compare<Compare>
+constexpr auto binary_search_tree<T, Compare, Alloc>::upper_bound(U const & x)
+    -> iterator
+{ return _upper_bound_impl(*this, x); }
+
+template <typename T, typename Compare, typename Alloc>
+template <typename U> requires meta::is_transparent_compare<Compare>
+constexpr auto binary_search_tree<T, Compare, Alloc>::upper_bound(U const & x) const
+    -> const_iterator
+{ return _upper_bound_impl(*this, x); }
+
+template <typename T, typename Compare, typename Alloc>
+template <typename Self, typename U>
+constexpr auto binary_search_tree<T, Compare, Alloc>::_equal_range_impl(Self && self, U const & x)
+{
+    auto const lower = _lower_bound_impl(self, x);
+    auto const upper = std::find_if(lower, self.end(), [&x, &self](auto && v) { return self._cmp(x, v); });
+
+    return std::pair{lower, upper};
+}
+
+template <typename T, typename Compare, typename Alloc>
+constexpr inline auto binary_search_tree<T, Compare, Alloc>::equal_range(value_type const & x)
+    -> std::pair<iterator, iterator>
+{ return _equal_range_impl(*this, x); }
+
+template <typename T, typename Compare, typename Alloc>
+constexpr inline auto binary_search_tree<T, Compare, Alloc>::equal_range(value_type const & x) const
+    -> std::pair<const_iterator, const_iterator>
+{ return _equal_range_impl(*this, x); }
+
+template <typename T, typename Compare, typename Alloc>
+template <typename U> requires meta::is_transparent_compare<Compare>
+constexpr auto binary_search_tree<T, Compare, Alloc>::equal_range(U const & x)
+    -> std::pair<iterator, iterator>
+{ return _equal_range_impl(*this, x); }
+
+template <typename T, typename Compare, typename Alloc>
+template <typename U> requires meta::is_transparent_compare<Compare>
+constexpr auto binary_search_tree<T, Compare, Alloc>::equal_range(U const & x) const
+    -> std::pair<const_iterator, const_iterator>
+{ return _equal_range_impl(*this, x); }
+
+template <typename T, typename Compare, typename Alloc>
+constexpr auto binary_search_tree<T, Compare, Alloc>::count(value_type const & x) const
+    -> difference_type
+{
+    auto lower = lower_bound(x);
+    auto const end = this->end();
+    size_type count = 0;
+    auto const equal = [&cmp = _cmp, &x](auto && v) {
+        return not cmp(x, v) and not cmp(v, x);
+    };
+    while (lower != end and equal(*lower++)) {
+        ++count;
+    }
+
+    return count;
+}
+
+template <typename T, typename Compare, typename Alloc>
+template <typename K> requires meta::is_transparent_compare<Compare>
+constexpr auto binary_search_tree<T, Compare, Alloc>::count(K const & x) const
+    -> difference_type
+{
+    auto lower = lower_bound(x);
+    auto const end = this->end();
+    size_type count = 0;
+    auto const equal = [&cmp = _cmp, &x](auto && v) {
+        return not cmp(x, v) and not cmp(v, x);
+    };
+    while (lower != end and equal(*lower++)) {
+        ++count;
+    }
+
+    return count;
+}
 
 template <typename T, typename Compare, typename Alloc>
 constexpr inline auto binary_search_tree<T, Compare, Alloc>::is_left_child(node const * root, node const * child)

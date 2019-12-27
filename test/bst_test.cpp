@@ -222,6 +222,42 @@ TEMPLATE_TEST_CASE("One can search for objects in a bst", "[lookup]", int, std::
             REQUIRE(tree.lower_bound(select(7., "vaterc"sv)) == tree.find(select(8, "vaterca")));
             REQUIRE(tree.lower_bound(select(9., "zucchia"sv)) == tree.end());
         }
+        THEN("using `.upper_bound(X)` must return the first element which is 'greater' than X") {
+            REQUIRE(tree.upper_bound(select(0, "Il")) == std::next(tree.begin()));
+            REQUIRE(tree.upper_bound(select(4, "no")) == tree.find(select(5, "non")));
+            REQUIRE(tree.upper_bound(select(7, "vaterc")) == tree.find(select(8, "vaterca")));
+            REQUIRE(tree.upper_bound(select(9, "zucchia")) == tree.end());
+
+            REQUIRE(tree.upper_bound(select(0., "Il"sv)) == std::next(tree.begin()));
+            REQUIRE(tree.upper_bound(select(4., "no"sv)) == tree.find(select(5, "non")));
+            REQUIRE(tree.upper_bound(select(7., "vaterc"sv)) == tree.find(select(8, "vaterca")));
+            REQUIRE(tree.upper_bound(select(9., "zucchia"sv)) == tree.end());
+        }
+    }
+
+    tree.assign({
+        select(0, "a"),
+        select(0, "a"),
+        select(1, "b"),
+        select(1, "b"),
+        select(1, "b"),
+        select(1, "b"),
+        select(2, "c"),
+        select(2, "c")
+    });
+
+    SECTION("`equal_range` must return an open range of elements equal to `x`", "[lookup]") {
+        REQUIRE(tree.equal_range(select(0, "a")) == std::equal_range(begin(tree), end(tree), select(0, "a")));
+        REQUIRE(tree.equal_range(select(1, "b")) == std::equal_range(begin(tree), end(tree), select(1, "b")));
+        REQUIRE(tree.equal_range(select(2, "c")) == std::equal_range(begin(tree), end(tree), select(2, "c")));
+        REQUIRE(tree.equal_range(select(-1, "d")) == std::equal_range(begin(tree), end(tree), select(-1, "d")));
+    }
+
+    SECTION("`count` must return the number of elements with value `X`", "[lookup]") {
+        REQUIRE(tree.count(select(0, "a")) == std::count(begin(tree), end(tree), select(0, "a")));
+        REQUIRE(tree.count(select(1, "b")) == std::count(begin(tree), end(tree), select(1, "b")));
+        REQUIRE(tree.count(select(2, "c")) == std::count(begin(tree), end(tree), select(2, "c")));
+        REQUIRE(tree.count(select(-1, "d")) == std::count(begin(tree), end(tree), select(-1, "d")));
     }
 }
 
