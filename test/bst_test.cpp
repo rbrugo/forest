@@ -192,6 +192,12 @@ TEMPLATE_TEST_CASE("One can search for objects in a bst", "[lookup]", int, std::
             REQUIRE(tree.find(select(42, "barigatta")) == end);
             REQUIRE(tree.find(select(-7, "")) == end);
         }
+        THEN("using `.lower_bound(X)` must return the first element which is not 'less' than X") {
+            REQUIRE(tree.lower_bound(select(0, "Il")) == tree.begin());
+            REQUIRE(tree.lower_bound(select(4, "no")) == tree.find(select(5, "non")));
+            REQUIRE(tree.lower_bound(select(7, "vaterc")) == tree.find(select(8, "vaterca")));
+            REQUIRE(tree.lower_bound(select(9, "zucchia")) == tree.end());
+        }
     }
 }
 
