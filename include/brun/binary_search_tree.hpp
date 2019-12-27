@@ -189,7 +189,7 @@ public:
     //template <typename U> requires meta::is_transparent_compare<Compare>
     //constexpr auto equal_range(U const & x) const -> pair<const_iterator, const_iterator>
 
-    //constexpr auto lower_bound(value_type const & x) -> iterator;
+    constexpr auto lower_bound(value_type const & x) -> iterator;
     //constexpr auto lower_bound(value_type const & x) const -> const iterator;
     //template <typename U> requires meta::is_transparent_compare<Compare>
     //constexpr auto lower_bound(U const & x) -> iterator;
@@ -618,6 +618,45 @@ constexpr auto binary_search_tree<T, Compare, Alloc>::find(U const & x) const
 {
     auto found = _find_impl(x);
     return found ? iterator{found} : end();
+}
+
+template <typename T, typename Compare, typename Alloc>
+constexpr auto binary_search_tree<T, Compare, Alloc>::lower_bound(value_type const & x)
+    -> iterator
+{
+    //TODO
+    //Returns an iterator pointing to the first element that is not less than value, or end() if no
+    // such element is found.
+    auto it = _root();
+    auto last = it;
+    while (it != nullptr) {
+        if (_cmp(it->value(), x)) {
+            last = it;
+            it = it->right;
+        } else if (_cmp(x, it->value())) {
+            last = it;
+            it = it->left;
+        } else {
+            auto tmp = it;
+            while (*--it == *tmp) { tmp = it; }
+            return tmp;
+        }
+    }
+    if (last == _last()) {
+        return end();
+    }
+    auto res = iterator{last};
+    if (_cmp(*res, x)) {
+        /* while (_cmp(*res, x)) { */
+            --res;
+        /* } */
+    } else {
+        /* auto const end = end(); */
+        /* while (res != end and _cmp(*res, x)) { */
+        ++res;
+        /* } */
+    }
+    return res;
 }
 
 template <typename T, typename Compare, typename Alloc>
