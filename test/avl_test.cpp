@@ -252,8 +252,8 @@ TEMPLATE_LIST_TEST_CASE("avl-tree can be templated on various allocators",
     }
 }
 
-template <typename T>
-auto select([[maybe_unused]] int x, [[maybe_unused]] std::string y)
+template <typename T, typename Int, typename String>
+auto select([[maybe_unused]] Int x, [[maybe_unused]] String y)
 {
     if constexpr (std::is_same_v<T, int>) {
         return x;
@@ -264,6 +264,8 @@ auto select([[maybe_unused]] int x, [[maybe_unused]] std::string y)
 
 TEMPLATE_TEST_CASE("One can search for objects in an avl-tree", "[lookup]", int, std::string)
 {
+    using std::literals::operator""s;
+    using std::literals::operator""sv;
     auto tree = avl_tree<TestType>{};
     if constexpr (std::is_same_v<TestType, int>) {
         tree.assign({0, 1, 2, 3, 5, 8});
@@ -274,27 +276,74 @@ TEMPLATE_TEST_CASE("One can search for objects in an avl-tree", "[lookup]", int,
     auto select = [](auto a, auto b) { return ::select<TestType>(a, std::move(b)); };
     GIVEN("an avl-tree with some elements") {
         THEN("using `.contains(X)` must return `true` if `X` is in the container") {
-            REQUIRE(tree.contains(select(0, "Il")));
-            REQUIRE(tree.contains(select(1, "lonfo")));
-            REQUIRE(tree.contains(select(2, "non")));
-            REQUIRE(tree.contains(select(3, "vaterca")));
-            REQUIRE(tree.contains(select(5, "ne")));
-            REQUIRE(tree.contains(select(8, "gluisce")));
-            REQUIRE(!tree.contains(select(42, "barigatta")));
-            REQUIRE(!tree.contains(select(-7, "")));
+            REQUIRE(tree.contains(select(0, "Il"s)));
+            REQUIRE(tree.contains(select(1, "lonfo"s)));
+            REQUIRE(tree.contains(select(2, "non"s)));
+            REQUIRE(tree.contains(select(3, "vaterca"s)));
+            REQUIRE(tree.contains(select(5, "ne"s)));
+            REQUIRE(tree.contains(select(8, "gluisce"s)));
+            REQUIRE(!tree.contains(select(42, "barigatta"s)));
+            REQUIRE(!tree.contains(select(-7, ""s)));
         }
         THEN("using `.find(X)` must return an iterator to the elem `X`, or `end()` if `X` is not in the tree") {
             auto const end = tree.cend();
             auto it = tree.begin();
-            REQUIRE(tree.find(select(0, "Il")) == it++);
-            REQUIRE(tree.find(select(1, "gluisce")) == it++);
-            REQUIRE(tree.find(select(2, "lonfo")) == it++);
-            REQUIRE(tree.find(select(3, "ne")) == it++);
-            REQUIRE(tree.find(select(5, "non")) == it++);
-            REQUIRE(tree.find(select(8, "vaterca")) == it);
-            REQUIRE(tree.find(select(42, "barigatta")) == end);
-            REQUIRE(tree.find(select(-7, "")) == end);
+            REQUIRE(tree.find(select(0, "Il"s)) == it++);
+            REQUIRE(tree.find(select(1, "gluisce"s)) == it++);
+            REQUIRE(tree.find(select(2, "lonfo"s)) == it++);
+            REQUIRE(tree.find(select(3, "ne"s)) == it++);
+            REQUIRE(tree.find(select(5, "non"s)) == it++);
+            REQUIRE(tree.find(select(8, "vaterca"s)) == it);
+            REQUIRE(tree.find(select(42, "barigatta"s)) == end);
+            REQUIRE(tree.find(select(-7, ""s)) == end);
         }
+        THEN("using `.lower_bound(X)` must return the first element which is not 'less' than X") {
+            REQUIRE(tree.lower_bound(select(0, "Il"s)) == tree.begin());
+            REQUIRE(tree.lower_bound(select(4, "no"s)) == tree.find(select(5, "non")));
+            REQUIRE(tree.lower_bound(select(7, "vaterc"s)) == tree.find(select(8, "vaterca")));
+            REQUIRE(tree.lower_bound(select(9, "zucchia"s)) == tree.end());
+
+            REQUIRE(tree.lower_bound(select(0., "Il"sv)) == tree.begin());
+            REQUIRE(tree.lower_bound(select(4., "no"sv)) == tree.find(select(5, "non")));
+            REQUIRE(tree.lower_bound(select(7., "vaterc"sv)) == tree.find(select(8, "vaterca")));
+            REQUIRE(tree.lower_bound(select(9., "zucchia"sv)) == tree.end());
+        }
+        THEN("using `.upper_bound(X)` must return the first element which is 'greater' than X") {
+            REQUIRE(tree.upper_bound(select(0, "Il")) == std::next(tree.begin()));
+            REQUIRE(tree.upper_bound(select(4, "no")) == tree.find(select(5, "non")));
+            REQUIRE(tree.upper_bound(select(7, "vaterc")) == tree.find(select(8, "vaterca")));
+            REQUIRE(tree.upper_bound(select(9, "zucchia")) == tree.end());
+
+            REQUIRE(tree.upper_bound(select(0., "Il"sv)) == std::next(tree.begin()));
+            REQUIRE(tree.upper_bound(select(4., "no"sv)) == tree.find(select(5, "non")));
+            REQUIRE(tree.upper_bound(select(7., "vaterc"sv)) == tree.find(select(8, "vaterca")));
+            REQUIRE(tree.upper_bound(select(9., "zucchia"sv)) == tree.end());
+        }
+    }
+
+    tree.assign({
+        select(0, "a"),
+        select(0, "a"),
+        select(1, "b"),
+        select(1, "b"),
+        select(1, "b"),
+        select(1, "b"),
+        select(2, "c"),
+        select(2, "c")
+    });
+
+    SECTION("`equal_range` must return an open range of elements equal to `x`", "[lookup]") {
+        REQUIRE(tree.equal_range(select(0, "a")) == std::equal_range(begin(tree), end(tree), select(0, "a")));
+        REQUIRE(tree.equal_range(select(1, "b")) == std::equal_range(begin(tree), end(tree), select(1, "b")));
+        REQUIRE(tree.equal_range(select(2, "c")) == std::equal_range(begin(tree), end(tree), select(2, "c")));
+        REQUIRE(tree.equal_range(select(-1, "d")) == std::equal_range(begin(tree), end(tree), select(-1, "d")));
+    }
+
+    SECTION("`count` must return the number of elements with value `X`", "[lookup]") {
+        REQUIRE(tree.count(select(0, "a")) == std::count(begin(tree), end(tree), select(0, "a")));
+        REQUIRE(tree.count(select(1, "b")) == std::count(begin(tree), end(tree), select(1, "b")));
+        REQUIRE(tree.count(select(2, "c")) == std::count(begin(tree), end(tree), select(2, "c")));
+        REQUIRE(tree.count(select(-1, "d")) == std::count(begin(tree), end(tree), select(-1, "d")));
     }
 }
 

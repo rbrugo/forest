@@ -130,38 +130,38 @@ public:
     constexpr void merge(avl_tree<value_type, Cmp2, allocator_type> && source);
 
     /// Lookup
-    //constexpr auto count(value_type const & x) const -> size_type;
-    //template <typename K> requires meta::is_transparent_compare<Compare>
-    //constexpr auto count(K const & x) const -> size_type;
+    constexpr inline auto count(value_type const & x) const -> difference_type;
+    template <typename K> requires meta::is_transparent_compare<Compare>
+    constexpr inline auto count(K const & x) const -> difference_type;
     constexpr inline bool contains(value_type const & x) const;
     template <typename U> requires meta::is_transparent_compare<Compare>
     constexpr inline auto contains(U const & x) const -> bool;
-    constexpr iterator find(value_type const & x);
-    constexpr const_iterator find(value_type const & x) const;
+    constexpr inline auto find(value_type const & x) -> iterator;
+    constexpr inline auto find(value_type const & x) const -> const_iterator;
     template <typename U> requires meta::is_transparent_compare<Compare>
-    constexpr auto find(U const & x) -> iterator;
+    constexpr inline auto find(U const & x) -> iterator;
     template <typename U> requires meta::is_transparent_compare<Compare>
-    constexpr auto find(U const & x) const -> const_iterator;
-    //constexpr pair<iterator, iterator> equal_range(value_type const & x);
-    //constexpr pair<const_iterator, const_iterator> equal_range(value_type const & x) const;
-    //template <typename U> requires meta::is_transparent_compare<Compare>
-    //constexpr auto equal_range(U const & x) -> pair<iterator, iterator>
-    //template <typename U> requires meta::is_transparent_compare<Compare>
-    //constexpr auto equal_range(U const & x) const -> pair<const_iterator, const_iterator>
+    constexpr inline auto find(U const & x) const -> const_iterator;
+    constexpr inline auto equal_range(value_type const & x) -> std::pair<iterator, iterator>;
+    constexpr inline auto equal_range(value_type const & x) const -> std::pair<const_iterator, const_iterator>;
+    template <typename U> requires meta::is_transparent_compare<Compare>
+    constexpr inline auto equal_range(U const & x) -> std::pair<iterator, iterator>;
+    template <typename U> requires meta::is_transparent_compare<Compare>
+    constexpr inline auto equal_range(U const & x) const -> std::pair<const_iterator, const_iterator>;
 
-    //constexpr auto lower_bound(value_type const & x) -> iterator;
-    //constexpr auto lower_bound(value_type const & x) const -> const iterator;
-    //template <typename U> requires meta::is_transparent_compare<Compare>
-    //constexpr auto lower_bound(U const & x) -> iterator;
-    //template <typename U> requires meta::is_transparent_compare<Compare>
-    //constexpr auto lower_bound(U const & x) const -> const iterator;
+    constexpr inline auto lower_bound(value_type const & x) -> iterator;
+    constexpr inline auto lower_bound(value_type const & x) const -> const_iterator;
+    template <typename U> requires meta::is_transparent_compare<Compare>
+    constexpr inline auto lower_bound(U const & x) -> iterator;
+    template <typename U> requires meta::is_transparent_compare<Compare>
+    constexpr inline auto lower_bound(U const & x) const -> const_iterator;
 
-    //constexpr auto upper_bound(value_type const & x) -> iterator;
-    //constexpr auto upper_bound(value_type const & x) const -> const iterator;
-    //template <typename U> requires meta::is_transparent_compare<Compare>
-    //constexpr auto upper_bound(U const & x) -> iterator;
-    //template <typename U> requires meta::is_transparent_compare<Compare>
-    //constexpr auto upper_bound(U const & x) const -> const iterator;
+    constexpr inline auto upper_bound(value_type const & x) -> iterator;
+    constexpr inline auto upper_bound(value_type const & x) const -> const_iterator;
+    template <typename U> requires meta::is_transparent_compare<Compare>
+    constexpr inline auto upper_bound(U const & x) -> iterator;
+    template <typename U> requires meta::is_transparent_compare<Compare>
+    constexpr inline auto upper_bound(U const & x) const -> const_iterator;
 
 private:
     constexpr void _balance_from(node_pointer ptr);
@@ -511,47 +511,112 @@ void avl_tree<T, Compare, Alloc>::_balance_from(node_pointer ptr)
 
 template <typename T, typename Compare, typename Alloc>
 constexpr inline bool avl_tree<T, Compare, Alloc>::contains(value_type const & x) const
-{
-    return base::contains(x);
-}
+{ return base::contains(x); }
 
 template <typename T, typename Compare, typename Alloc>
 template <typename U> requires meta::is_transparent_compare<Compare>
 constexpr inline auto avl_tree<T, Compare, Alloc>::contains(U const & x) const
     -> bool
-{
-    return base::contains(x);
-}
+{ return base::contains(x); }
 
 template <typename T, typename Compare, typename Alloc>
 constexpr inline auto avl_tree<T, Compare, Alloc>::find(value_type const & x)
     -> iterator
-{
-    return base::find(x);
-}
+{ return base::find(x); }
 
 template <typename T, typename Compare, typename Alloc>
 constexpr inline auto avl_tree<T, Compare, Alloc>::find(value_type const & x) const
     -> const_iterator
-{
-    return base::find(x);
-}
+{ return base::find(x); }
 
 template <typename T, typename Compare, typename Alloc>
 template <typename U> requires meta::is_transparent_compare<Compare>
 constexpr auto avl_tree<T, Compare, Alloc>::find(U const & x)
     -> iterator
-{
-    return base::find(x);
-}
+{ return base::find(x); }
 
 template <typename T, typename Compare, typename Alloc>
 template <typename U> requires meta::is_transparent_compare<Compare>
 constexpr auto avl_tree<T, Compare, Alloc>::find(U const & x) const
     -> const_iterator
-{
-    return base::find(x);
-}
+{ return base::find(x); }
+
+template <typename T, typename Compare, typename Alloc>
+constexpr inline auto avl_tree<T, Compare, Alloc>::lower_bound(value_type const & x)
+    -> iterator
+{ return base::lower_bound(x); }
+
+template <typename T, typename Compare, typename Alloc>
+constexpr inline auto avl_tree<T, Compare, Alloc>::lower_bound(value_type const & x) const
+    -> const_iterator
+{ return base::lower_bound(x); }
+
+template <typename T, typename Compare, typename Alloc>
+template <typename U> requires meta::is_transparent_compare<Compare>
+constexpr auto avl_tree<T, Compare, Alloc>::lower_bound(U const & x)
+    -> iterator
+{ return base::lower_bound(x); }
+
+template <typename T, typename Compare, typename Alloc>
+template <typename U> requires meta::is_transparent_compare<Compare>
+constexpr auto avl_tree<T, Compare, Alloc>::lower_bound(U const & x) const
+    -> const_iterator
+{ return base::lower_bound(x); }
+
+template <typename T, typename Compare, typename Alloc>
+constexpr inline auto avl_tree<T, Compare, Alloc>::upper_bound(value_type const & x)
+    -> iterator
+{ return base::upper_bound(x); }
+
+template <typename T, typename Compare, typename Alloc>
+constexpr inline auto avl_tree<T, Compare, Alloc>::upper_bound(value_type const & x) const
+    -> const_iterator
+{ return base::upper_bound(x); }
+
+template <typename T, typename Compare, typename Alloc>
+template <typename U> requires meta::is_transparent_compare<Compare>
+constexpr auto avl_tree<T, Compare, Alloc>::upper_bound(U const & x)
+    -> iterator
+{ return base::upper_bound(x); }
+
+template <typename T, typename Compare, typename Alloc>
+template <typename U> requires meta::is_transparent_compare<Compare>
+constexpr auto avl_tree<T, Compare, Alloc>::upper_bound(U const & x) const
+    -> const_iterator
+{ return base::upper_bound(x); }
+
+template <typename T, typename Compare, typename Alloc>
+constexpr inline auto avl_tree<T, Compare, Alloc>::equal_range(value_type const & x)
+    -> std::pair<iterator, iterator>
+{ return base::equal_range(x); }
+
+template <typename T, typename Compare, typename Alloc>
+constexpr inline auto avl_tree<T, Compare, Alloc>::equal_range(value_type const & x) const
+    -> std::pair<const_iterator, const_iterator>
+{ return base::equal_range(x); }
+
+template <typename T, typename Compare, typename Alloc>
+template <typename U> requires meta::is_transparent_compare<Compare>
+constexpr auto avl_tree<T, Compare, Alloc>::equal_range(U const & x)
+    -> std::pair<iterator, iterator>
+{ return base::equal_range(x); }
+
+template <typename T, typename Compare, typename Alloc>
+template <typename U> requires meta::is_transparent_compare<Compare>
+constexpr auto avl_tree<T, Compare, Alloc>::equal_range(U const & x) const
+    -> std::pair<const_iterator, const_iterator>
+{ return base::equal_range(x); }
+
+template <typename T, typename Compare, typename Alloc>
+constexpr auto avl_tree<T, Compare, Alloc>::count(value_type const & x) const
+    -> difference_type
+{ return base::count(x); }
+
+template <typename T, typename Compare, typename Alloc>
+template <typename U> requires meta::is_transparent_compare<Compare>
+constexpr auto avl_tree<T, Compare, Alloc>::count(U const & x) const
+    -> difference_type
+{ return base::count(x); }
 
 template <typename T, typename Compare, typename Alloc>
 constexpr inline
