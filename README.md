@@ -6,7 +6,8 @@ At the moment the library provides only two types of tree:
 - `binary_search_tree<T, Compare, Alloc>`
 - `avl_tree<T, Compare, Alloc>`
 
-Each of them supports the following operations:
+Each of them supports the following operations (with `tree` as a placeholder for
+`binary_search_tree<T, Compare, Alloc>` or `avl_tree<T, Compare, Alloc>`):
 ### Constructors
 - `tree()`, `tree(tree &&)`, `tree(tree const &)`
 - `tree(Iterator first, Iterator last)`
