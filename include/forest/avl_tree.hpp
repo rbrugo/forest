@@ -120,6 +120,9 @@ public:
     constexpr inline iterator insert(value_type && value);
     constexpr inline iterator insert(node_handle && n);
     constexpr inline iterator insert(const_iterator hint, node_handle && n);
+    constexpr inline iterator insert_unique(value_type const & value);
+    constexpr inline iterator insert_unique(value_type && value);
+    constexpr inline iterator insert_unique(node_handle && n);
 
     template <typename ...Args>
     constexpr reference emplace(Args&&... args);
@@ -371,6 +374,51 @@ auto avl_tree<T, Compare, Alloc>::insert(const_iterator it, node_handle && n)
     _balance_from(_new_node);
 
     return iterator{_new_node};
+}
+
+template <typename T, typename Compare, typename Alloc>
+constexpr
+auto avl_tree<T, Compare, Alloc>::insert_unique(value_type const & value)
+    -> iterator
+{
+    auto found = lower_bound(value);
+    if (found != end()) {
+        return found;
+    }
+    auto _hold = base::_construct_node(_node_alloc, value);
+    auto _new_node = base::_emplace(found, std::move(_hold));
+    _balance_from(_new_node);
+
+    return iterator{_new_node};
+}
+
+template <typename T, typename Compare, typename Alloc>
+constexpr
+auto avl_tree<T, Compare, Alloc>::insert_unique(value_type && value)
+    -> iterator
+{
+    auto found = lower_bound(value);
+    if (found != end()) {
+        return found;
+    }
+    auto _hold = base::_construct_node(_node_alloc, std::move(value));
+    auto _new_node = base::_emplace(found, std::move(_hold));
+    _balance_from(_new_node);
+
+    return iterator{_new_node};
+}
+
+template <typename T, typename Compare, typename Alloc>
+constexpr
+auto avl_tree<T, Compare, Alloc>::insert_unique(node_handle && n)
+    -> iterator
+{
+    auto found = lower_bound(n.value());
+    if (found != end()) {
+        return found;
+    }
+
+    return insert(found, std::move(n));
 }
 
 template <typename T, typename Compare, typename Alloc>
