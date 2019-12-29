@@ -44,6 +44,9 @@ If you need to edit or remove a value, use `extract`
 - `iterator tree::insert(value_type && value)`
 - `iterator tree::insert(node_handle && handle)`
 - `iterator tree::insert(const_iterator hint, node_handle && handle)`
+- `iterator tree::insert_unique(value_type const & value)`
+- `iterator tree::insert_unique(value_type && value)`
+- `iterator tree::insert_unique(node_handle && handle)`
 - `reference tree::emplace(Args&&... args)`
 - `void merge(tree & source)`, only the `Compare` template parameter can be different
 - `void merge(tree && source)`, only the `Compare` template parameter can be different
