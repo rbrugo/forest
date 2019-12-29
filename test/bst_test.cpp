@@ -281,6 +281,24 @@ TEST_CASE("It is possible to extract and insert nodes, and merge trees", "[extra
             a.insert(std::move(n2));
             REQUIRE(a.front() == 0);
         }
+        THEN("`insert_unique` must insert an element iff the element is not already contained in the tree") {
+            a.insert_unique(100);
+            REQUIRE(a.back() == 100);
+            a.insert_unique(101);
+            a.insert_unique(102);
+            auto it = a.insert_unique(101);
+            REQUIRE(*std::prev(it) == 100);
+            REQUIRE(*it == 101);
+            REQUIRE(*std::next(it) == 102);
+            a.insert(102);
+            auto n = a.extract(std::prev(a.end()));
+            REQUIRE(n.value() == 102);
+            it = a.insert_unique(std::move(n));
+            REQUIRE(*std::prev(it) == 101);
+            REQUIRE(*it == 102);
+            REQUIRE(std::next(it) == a.end());
+
+        }
         THEN("is possible to merge the two containers") {
             auto a2 = a;
             auto b2 = b;

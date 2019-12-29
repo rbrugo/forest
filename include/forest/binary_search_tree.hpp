@@ -151,6 +151,9 @@ public:
     constexpr inline iterator insert(value_type const & value);
     constexpr inline iterator insert(value_type && value);
     constexpr inline iterator insert(node_handle && n);
+    constexpr inline iterator insert_unique(value_type const & value);
+    constexpr inline iterator insert_unique(value_type && value);
+    constexpr inline iterator insert_unique(node_handle && n);
 
     template <typename ...Args>
     constexpr reference emplace(Args&&... args);
@@ -425,6 +428,50 @@ constexpr inline
 auto binary_search_tree<T, Compare, Alloc>::insert(node_handle && n)
     -> iterator
 {
+    auto hold = _hold_ptr(n._storage, _node_deallocator(_node_alloc));
+    hold.get_deleter().constructed = 2;
+    n._storage = nullptr;
+    return iterator{_emplace(std::move(hold))};
+}
+
+template <typename T, typename Compare, typename Alloc>
+constexpr
+auto binary_search_tree<T, Compare, Alloc>::insert_unique(value_type const & value)
+    -> iterator
+{
+    auto found = lower_bound(value);
+    if (found != end()) {
+        return found;
+    }
+
+    auto _new_node = _construct_node(_node_alloc, value);
+    return iterator{_emplace(found, std::move(_new_node))};
+}
+
+template <typename T, typename Compare, typename Alloc>
+constexpr
+auto binary_search_tree<T, Compare, Alloc>::insert_unique(value_type && value)
+    -> iterator
+{
+    auto found = lower_bound(value);
+    if (found != end()) {
+        return found;
+    }
+
+    auto _new_node = _construct_node(_node_alloc, std::move(value));
+    return iterator{_emplace(found, std::move(_new_node))};
+}
+
+template <typename T, typename Compare, typename Alloc>
+constexpr inline
+auto binary_search_tree<T, Compare, Alloc>::insert_unique(node_handle && n)
+    -> iterator
+{
+    auto found = lower_bound(n.value());
+    if (found != end()) {
+        return found;
+    }
+
     auto hold = _hold_ptr(n._storage, _node_deallocator(_node_alloc));
     hold.get_deleter().constructed = 2;
     n._storage = nullptr;
