@@ -275,7 +275,7 @@ TEST_CASE("It is possible to extract and insert nodes, and merge trees", "[extra
             REQUIRE(n2.value() == 0);
             REQUIRE(n1.value() == 34);
 
-            a.insert(std::move(n1));
+            a.insert(std::prev(a.end()), std::move(n1));
             REQUIRE(a.back() == 34);
 
             a.insert(std::move(n2));

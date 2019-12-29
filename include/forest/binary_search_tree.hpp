@@ -151,6 +151,7 @@ public:
     constexpr inline iterator insert(value_type const & value);
     constexpr inline iterator insert(value_type && value);
     constexpr inline iterator insert(node_handle && n);
+    constexpr inline iterator insert(const_iterator hint, node_handle && n);
     constexpr inline iterator insert_unique(value_type const & value);
     constexpr inline iterator insert_unique(value_type && value);
     constexpr inline iterator insert_unique(node_handle && n);
@@ -432,6 +433,20 @@ auto binary_search_tree<T, Compare, Alloc>::insert(node_handle && n)
     hold.get_deleter().constructed = 2;
     n._storage = nullptr;
     return iterator{_emplace(std::move(hold))};
+}
+
+template <typename T, typename Compare, typename Alloc>
+constexpr inline
+auto binary_search_tree<T, Compare, Alloc>::insert(const_iterator it, node_handle && n)
+    -> iterator
+{
+    auto hold = _hold_ptr(n._storage, _node_deallocator(_node_alloc));
+    hold.get_deleter().constructed = 2;
+    n._storage = nullptr;
+    /* auto _new_node = base::_emplace(it, std::move(hold)); */
+
+    /* return iterator{_new_node}; */
+    return iterator{_emplace(it, std::move(hold))};
 }
 
 template <typename T, typename Compare, typename Alloc>
