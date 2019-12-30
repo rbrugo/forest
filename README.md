@@ -11,7 +11,7 @@ Each of them supports the following operations (with `tree` as a placeholder for
 
 ### Member types
 | Member type | Definition |
-|-------------:|:----------|
+|-------------|----------|
 | `key_type` | `T` |
 | `value_type` | `T` |
 | `size_type` | `std::size_t` |
