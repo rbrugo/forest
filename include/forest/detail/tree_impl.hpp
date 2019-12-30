@@ -28,17 +28,17 @@ public:
     using size_type       = std::size_t;
     using difference_type = std::ptrdiff_t;
     using height_type           = Int;
-    using node_type             = node<T, height_type>;
+    using node_impl_type             = node<T, height_type>;
 
 protected:
     using alloc_type            = typename std::allocator_traits<Alloc>::template rebind_alloc<T>;
     using alloc_traits          = std::allocator_traits<alloc_type>;
-    using node_allocator        = typename alloc_traits::template rebind_alloc<node_type>;
+    using node_allocator        = typename alloc_traits::template rebind_alloc<node_impl_type>;
     using node_allocator_traits = std::allocator_traits<node_allocator>;
     using node_pointer          = typename node_allocator_traits::pointer;
     using node_const_pointer    = typename node_allocator_traits::const_pointer;
 
-    node_type _end; // _end->root = root; _end->left = front; _end->right = back
+    node_impl_type _end; // _end->root = root; _end->left = front; _end->right = back
     size_type _size;
     [[no_unique_address]] node_allocator _node_alloc;
 

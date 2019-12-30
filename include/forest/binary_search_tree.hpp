@@ -24,14 +24,16 @@ class binary_search_tree : private detail::_tree_impl<T, std::int_fast8_t, Alloc
 {
 public:
     using base                  = detail::_tree_impl<T, std::int_fast8_t, Alloc>;
-    using node                  = typename base::node_type;
+    using node                  = typename base::node_impl_type;
     using node_allocator        = typename base::node_allocator;
     using node_allocator_traits = typename base::node_allocator_traits;
     using node_pointer          = typename base::node_pointer;
     using node_const_pointer    = typename base::node_const_pointer;
-    using compare_type          = Compare;
+    using key_compare           = Compare;
+    using value_compare         = Compare;
     using height_type           = std::int_fast8_t;
 public:
+    using key_type               = T;
     using value_type             = T;
     using allocator_type         = Alloc;
     using reference              = value_type &;
@@ -44,17 +46,17 @@ public:
     using const_iterator         = detail::_bst_const_iterator<value_type>;
     using reverse_iterator       = std::reverse_iterator<iterator>;
     using const_reverse_iterator = std::reverse_iterator<const_iterator>;
-    using node_type              = typename base::node_type;
+    using node_impl_type         = typename base::node_impl_type;
 
 protected:
-    using node_handle           = forest::node_handle<value_type, height_type, allocator_type>;
-    using _node_deallocator     = detail::_node_deallocator<node, node_allocator>;
-    using _hold_ptr             = std::unique_ptr<node, _node_deallocator>;
+    using node_type              = forest::node_handle<value_type, height_type, allocator_type>;
+    using _node_deallocator      = detail::_node_deallocator<node, node_allocator>;
+    using _hold_ptr              = std::unique_ptr<node, _node_deallocator>;
 
     using base::_end;
     using base::_node_alloc;
     using base::_size;
-    [[no_unique_address]] compare_type _cmp;
+    [[no_unique_address]] key_compare _cmp;
 
 public:
 
@@ -140,8 +142,8 @@ public:
     /// Modifiers
     constexpr inline void clear() noexcept { base::clear(); }
 
-    constexpr inline node_handle extract(iterator it);
-    constexpr inline node_handle extract(value_type const & value);
+    constexpr inline node_type extract(iterator it);
+    constexpr inline node_type extract(value_type const & value);
 
 protected:
     constexpr node_pointer _emplace(const_iterator it, _hold_ptr && hold);
@@ -150,11 +152,11 @@ protected:
 public:
     constexpr inline iterator insert(value_type const & value);
     constexpr inline iterator insert(value_type && value);
-    constexpr inline iterator insert(node_handle && n);
-    constexpr inline iterator insert(const_iterator hint, node_handle && n);
+    constexpr inline iterator insert(node_type && n);
+    constexpr inline iterator insert(const_iterator hint, node_type && n);
     constexpr inline iterator insert_unique(value_type const & value);
     constexpr inline iterator insert_unique(value_type && value);
-    constexpr inline iterator insert_unique(node_handle && n);
+    constexpr inline iterator insert_unique(node_type && n);
 
     template <typename ...Args>
     constexpr reference emplace(Args&&... args);
@@ -426,7 +428,7 @@ auto binary_search_tree<T, Compare, Alloc>::insert(value_type && value)
 
 template <typename T, typename Compare, typename Alloc>
 constexpr inline
-auto binary_search_tree<T, Compare, Alloc>::insert(node_handle && n)
+auto binary_search_tree<T, Compare, Alloc>::insert(node_type && n)
     -> iterator
 {
     auto hold = _hold_ptr(n._storage, _node_deallocator(_node_alloc));
@@ -437,7 +439,7 @@ auto binary_search_tree<T, Compare, Alloc>::insert(node_handle && n)
 
 template <typename T, typename Compare, typename Alloc>
 constexpr inline
-auto binary_search_tree<T, Compare, Alloc>::insert(const_iterator it, node_handle && n)
+auto binary_search_tree<T, Compare, Alloc>::insert(const_iterator it, node_type && n)
     -> iterator
 {
     auto hold = _hold_ptr(n._storage, _node_deallocator(_node_alloc));
@@ -479,7 +481,7 @@ auto binary_search_tree<T, Compare, Alloc>::insert_unique(value_type && value)
 
 template <typename T, typename Compare, typename Alloc>
 constexpr inline
-auto binary_search_tree<T, Compare, Alloc>::insert_unique(node_handle && n)
+auto binary_search_tree<T, Compare, Alloc>::insert_unique(node_type && n)
     -> iterator
 {
     auto found = lower_bound(n.value());
@@ -948,16 +950,16 @@ constexpr auto binary_search_tree<T, Compare, Alloc>::_extract(iterator it)
 template <typename T, typename Compare, typename Alloc>
 constexpr inline
 auto binary_search_tree<T, Compare, Alloc>::extract(iterator it)
-    -> node_handle
+    -> node_type
 {
     _extract(std::move(it));
-    return node_handle{it._current, _node_alloc};
+    return node_type{it._current, _node_alloc};
 }
 
 template <typename T, typename Compare, typename Alloc>
 constexpr inline
 auto binary_search_tree<T, Compare, Alloc>::extract(value_type const & value)
-    -> node_handle
+    -> node_type
 {
     if (auto it = find(value); it != end()) {
         return extract(std::move(it));
