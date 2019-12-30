@@ -8,6 +8,27 @@ At the moment the library provides only two types of tree:
 
 Each of them supports the following operations (with `tree` as a placeholder for
 `binary_search_tree<T, Compare, Alloc>` or `avl_tree<T, Compare, Alloc>`):
+
+### Member types
+| Member type | Definition |
+|-------------:|:----------|
+| `key_type` | `T` |
+| `value_type` | `T` |
+| `size_type` | `std::size_t` |
+| `difference_type` | `std::ptrdiff_t` |
+| `key_compare` | `Compare` |
+| `value_compare` | `Compare` |
+| `allocator_type` | `Alloc` |
+| `reference` | `value_type &` |
+| `const_reference` | `value_type const &` |
+| `pointer` | `std::allocator_traits<allocator_type>::pointer` |
+| `const_pointer` | `std::allocator_traits<allocator_type>::const_pointer` |
+| `iterator` | Constant [_LegacyBidirectionalIterator_](https://en.cppreference.com/w/cpp/named_req/BidirectionalIterator) |
+| `const_iterator` | Constant [_LegacyBidirectionalIterator_](https://en.cppreference.com/w/cpp/named_req/BidirectionalIterator) |
+| `reverse_iterator` | `std::reverse_iterator<iterator>` |
+| `const_reverse_iterator` | `std::reverse_iterator<const_iterator>` |
+| `node_type` | _implementation defined_ [_node handle_](https://en.cppreference.com/w/cpp/container/node_handle) |
+
 ### Constructors
 - `tree()`, `tree(tree &&)`, `tree(tree const &)`
 - `tree(Iterator first, Iterator last)`
