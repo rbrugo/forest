@@ -27,8 +27,8 @@ public:
     using const_pointer   = typename std::allocator_traits<allocator_type>::const_pointer;
     using size_type       = std::size_t;
     using difference_type = std::ptrdiff_t;
-    using height_type           = Int;
-    using node_impl_type             = node<T, height_type>;
+    using height_type     = Int;
+    using node_impl_type  = node<T, height_type>;
 
 protected:
     using alloc_type            = typename std::allocator_traits<Alloc>::template rebind_alloc<T>;
