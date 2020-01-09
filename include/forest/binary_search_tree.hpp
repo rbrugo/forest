@@ -434,6 +434,7 @@ auto binary_search_tree<T, Compare, Alloc>::insert(node_type && n)
     auto hold = _hold_ptr(n._storage, _node_deallocator(_node_alloc));
     hold.get_deleter().constructed = 2;
     n._storage = nullptr;
+    n.invalidate();
     return iterator{_emplace(std::move(hold))};
 }
 
@@ -445,9 +446,7 @@ auto binary_search_tree<T, Compare, Alloc>::insert(const_iterator it, node_type 
     auto hold = _hold_ptr(n._storage, _node_deallocator(_node_alloc));
     hold.get_deleter().constructed = 2;
     n._storage = nullptr;
-    /* auto _new_node = base::_emplace(it, std::move(hold)); */
-
-    /* return iterator{_new_node}; */
+    n.invalidate();
     return iterator{_emplace(it, std::move(hold))};
 }
 
@@ -492,6 +491,7 @@ auto binary_search_tree<T, Compare, Alloc>::insert_unique(node_type && n)
     auto hold = _hold_ptr(n._storage, _node_deallocator(_node_alloc));
     hold.get_deleter().constructed = 2;
     n._storage = nullptr;
+    n.invalidate();
     return iterator{_emplace(std::move(hold))};
 }
 

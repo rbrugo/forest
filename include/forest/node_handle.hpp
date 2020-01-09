@@ -14,11 +14,13 @@
 #include "detail/node.hpp"
 #include "detail/utils.hpp"
 
+#include "detail/push_consumable.hpp"
+
 namespace forest
 {
 
 template <typename T, typename Int, typename Alloc>
-class node_handle
+class CONSUMABLE node_handle
 {
 public:
     template <typename, typename, typename> friend class binary_search_tree;
@@ -42,12 +44,12 @@ private:
     std::optional<allocator_type> _alloc = std::nullopt;
 
 public:
-    constexpr inline node_handle() noexcept = default;
-    constexpr inline node_handle(node_handle &&) noexcept = default;
-    constexpr inline node_handle & operator=(node_handle && other);
+    RETURN_TYPESTATE(consumed)   constexpr inline node_handle() noexcept = default;
+    RETURN_TYPESTATE(unconsumed) constexpr inline node_handle(node_handle &&) noexcept = default;
+    SET_TYPESTATE(unconsumed)    constexpr inline node_handle & operator=(node_handle && other);
     node_handle(node_handle const &) = delete;
     node_handle & operator=(node_handle const &) = delete;
-    constexpr inline node_handle(node * ptr, allocator_type alloc) :
+    RETURN_TYPESTATE(unconsumed) constexpr inline node_handle(node * ptr, allocator_type alloc) :
         _storage{ptr}, _alloc{alloc} { }
 
     inline ~node_handle() noexcept
@@ -64,15 +66,19 @@ public:
     explicit
     constexpr inline operator bool() const noexcept { return empty(); }
 
-    constexpr inline allocator_type get_allocator() const { return *_alloc; }
+    CALLABLE_WHEN(unconsumed) constexpr inline allocator_type get_allocator() const { return *_alloc; }
 
-    constexpr inline reference value() const { return _storage->value(); }
+    CALLABLE_WHEN(unconsumed) constexpr inline reference value() const { return _storage->value(); }
 
     constexpr void swap(node_handle & other)
         noexcept(noexcept(
                 allocator_traits::propagate_on_container_swap::value ||
                 allocator_traits::is_always_equal::value
         ));
+private:
+#ifdef CONSUMABLE_ENABLED
+    SET_TYPESTATE(unconsumed) constexpr inline void _consume() { }
+#endif
 }; // class node_handle
 
 template <typename T, typename Int, typename Alloc>
@@ -87,6 +93,7 @@ constexpr auto node_handle<T, Int, Alloc>::operator=(node_handle && other)
     if (transfer_allocator) {
         _alloc = std::move(other.alloc);
     }
+    other.consume();
     return *this;
 }
 
@@ -117,6 +124,8 @@ void swap(node_handle<T, Int, Alloc> & f, node_handle<T, Int, Alloc> & s) noexce
 }
 
 } // namespace forest
+
+#include "detail/pop_consumable.hpp"
 
 #endif /* NODE_HPP */
 

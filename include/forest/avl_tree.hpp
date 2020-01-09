@@ -44,7 +44,6 @@ public:
     using node_type              = base::node_type;
 
 protected:
-    /* using node_type             = base::node_type; */
     using _node_deallocator     = base::_node_deallocator;
     using _hold_ptr             = base::_hold_ptr;
 
@@ -359,6 +358,7 @@ auto avl_tree<T, Compare, Alloc>::insert(node_type && n)
     auto hold = _hold_ptr(n._storage, _node_deallocator(_node_alloc));
     hold.get_deleter().constructed = 2;
     n._storage = nullptr;
+    n.invalidate();
     auto _new_node = base::_emplace(std::move(hold));
     _balance_from(_new_node);
 
@@ -373,6 +373,7 @@ auto avl_tree<T, Compare, Alloc>::insert(const_iterator it, node_type && n)
     auto hold = _hold_ptr(n._storage, _node_deallocator(_node_alloc));
     hold.get_deleter().constructed = 2;
     n._storage = nullptr;
+    n.invalidate();
     auto _new_node = base::_emplace(it, std::move(hold));
     _balance_from(_new_node);
 
