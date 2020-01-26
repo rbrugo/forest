@@ -76,9 +76,7 @@ public:
                 allocator_traits::is_always_equal::value
         ));
 private:
-#ifdef CONSUMABLE_ENABLED
     SET_TYPESTATE(unconsumed) constexpr inline void _consume() { }
-#endif
 }; // class node_handle
 
 template <typename T, typename Int, typename Alloc>

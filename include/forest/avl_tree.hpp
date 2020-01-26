@@ -180,6 +180,18 @@ public:
         noexcept(noexcept(std::allocator_traits<node_allocator>::is_always_equal::value))
     { base::swap(other); }
 
+    friend constexpr bool operator==(avl_tree const & lhs, avl_tree const & rhs) noexcept
+    { return lhs.size() == rhs.size() and std::equal(lhs.cbegin(), lhs.cend(), rhs.cbegin(), rhs.cend()); }
+    friend constexpr bool operator!=(avl_tree const & lhs, avl_tree const & rhs) noexcept
+    { return not (lhs == rhs); }
+    friend constexpr bool operator< (avl_tree const & lhs, avl_tree const & rhs) noexcept
+    { return std::lexicographical_compare(lhs.begin(), lhs.end(), rhs.begin(), rhs.end(), std::less{}); }
+    friend constexpr bool operator<=(avl_tree const & lhs, avl_tree const & rhs) noexcept
+    { return std::lexicographical_compare(lhs.begin(), lhs.end(), rhs.begin(), rhs.end(), std::less_equal{}); }
+    friend constexpr bool operator> (avl_tree const & lhs, avl_tree const & rhs) noexcept
+    { return std::lexicographical_compare(lhs.begin(), lhs.end(), rhs.begin(), rhs.end(), std::greater{}); }
+    friend constexpr bool operator>=(avl_tree const & lhs, avl_tree const & rhs) noexcept
+    { return std::lexicographical_compare(lhs.begin(), lhs.end(), rhs.begin(), rhs.end(), std::greater_equal{}); }
 }; // class avl_tree
 
 template <typename T, typename Compare, typename Alloc>
@@ -358,7 +370,7 @@ auto avl_tree<T, Compare, Alloc>::insert(node_type && n)
     auto hold = _hold_ptr(n._storage, _node_deallocator(_node_alloc));
     hold.get_deleter().constructed = 2;
     n._storage = nullptr;
-    n.invalidate();
+    n._consume();
     auto _new_node = base::_emplace(std::move(hold));
     _balance_from(_new_node);
 
@@ -373,7 +385,7 @@ auto avl_tree<T, Compare, Alloc>::insert(const_iterator it, node_type && n)
     auto hold = _hold_ptr(n._storage, _node_deallocator(_node_alloc));
     hold.get_deleter().constructed = 2;
     n._storage = nullptr;
-    n.invalidate();
+    n._consume();
     auto _new_node = base::_emplace(it, std::move(hold));
     _balance_from(_new_node);
 

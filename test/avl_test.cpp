@@ -396,3 +396,27 @@ TEST_CASE("It is possible to extract and insert nodes, and merge trees", "[extra
         }
     }
 }
+
+TEST_CASE("It is possible to compare trees", "[compare]")
+{
+    auto const a = avl_tree<int>{0, 1, 2};
+    auto const b = avl_tree<int>{0, 1, 2};
+    auto const c = avl_tree<int>{0, 1, 1};
+    auto const d = avl_tree<int>{0, 1, 3};
+    GIVEN("two bst with some elements") {
+        THEN("it is possible to compare trees using operators") {
+            REQUIRE(a == b);
+            REQUIRE(a >= b);
+            REQUIRE(a <= b);
+            REQUIRE(a >= c);
+            REQUIRE(a >  c);
+            REQUIRE(c <  a);
+            REQUIRE(c <= a);
+            REQUIRE(a <= d);
+            REQUIRE(a <  d);
+            REQUIRE(d >= a);
+            REQUIRE(d >  a);
+            REQUIRE(a != d);
+        }
+    }
+}
