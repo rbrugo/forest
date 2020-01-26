@@ -89,5 +89,6 @@ For trees whose `Compare` is transparent (e.g. `std::less<void>`):
 ### General
 - `void swap(tree &)`
 - `allocator_type get_allocator()`
+- comparison operators
 
 
